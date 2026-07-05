@@ -1,0 +1,27 @@
+services:
+  web:
+    build:
+      context: .
+      target: development
+    container_name: passarela-web
+    ports:
+      - '4000:4000'
+    env_file:
+      - .env
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+      - WATCHPACK_POLLING=true
+    volumes:
+      - ./src:/usr/src/app/src
+      - ./__tests__:/usr/src/app/__tests__
+      - ./public:/usr/src/app/public
+      - ./index.html:/usr/src/app/index.html
+      - ./tsconfig.json:/usr/src/app/tsconfig.json
+      - ./tsconfig.app.json:/usr/src/app/tsconfig.app.json
+      - ./tsconfig.node.json:/usr/src/app/tsconfig.node.json
+      - ./vite.config.ts:/usr/src/app/vite.config.ts
+      - node_modules:/usr/src/app/node_modules
+    command: npm run dev -- --host
+
+volumes:
+  node_modules:
