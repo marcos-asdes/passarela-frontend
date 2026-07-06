@@ -4,6 +4,9 @@
  * Cenários testados:
  * - offerReceived: adiciona a offer no topo de `public.items`
  * - offerReceived: ignora quando a offer já está na lista (evita duplicata em corrida com o refetch)
+ * - offerStatusChanged: atualiza só o status da offer correspondente em `public.items` (Expired/SoldOut)
+ * - offerStatusChanged: remove a offer de `public.items` quando o status é Closed
+ * - offerStatusChanged: não faz nada quando a offer não está na lista
  * - createOfferThunk.fulfilled: adiciona a offer criada em `mine.items` com interestCount 0
  * - closeOfferThunk.fulfilled: atualiza só o status da offer correspondente em `mine.items`
  */
@@ -12,7 +15,7 @@ import { describe, expect, it } from 'vitest'
 
 import { closeOfferThunk, createOfferThunk } from '@/store/reducers/offers/thunk'
 import { OfferStatus } from '@/store/reducers/offers/types'
-import reducer, { initialState, offerReceived } from '@/store/reducers/offers/slice'
+import reducer, { initialState, offerReceived, offerStatusChanged } from '@/store/reducers/offers/slice'
 
 const offer = {
   id: 'offer-1',
@@ -39,6 +42,29 @@ describe('offers slice', () => {
     const state = reducer(withOffer, offerReceived(offer))
 
     expect(state.public.items).toHaveLength(1)
+  })
+
+  it('offerStatusChanged atualiza só o status da offer correspondente em public.items', () => {
+    const withOffer = reducer(initialState, offerReceived(offer))
+
+    const state = reducer(withOffer, offerStatusChanged({ ...offer, status: OfferStatus.Expired }))
+
+    expect(state.public.items[0].status).toBe(OfferStatus.Expired)
+    expect(state.public.items[0].title).toBe(offer.title)
+  })
+
+  it('offerStatusChanged remove a offer de public.items quando o status é Closed', () => {
+    const withOffer = reducer(initialState, offerReceived(offer))
+
+    const state = reducer(withOffer, offerStatusChanged({ ...offer, status: OfferStatus.Closed }))
+
+    expect(state.public.items).toHaveLength(0)
+  })
+
+  it('offerStatusChanged não faz nada quando a offer não está na lista', () => {
+    const state = reducer(initialState, offerStatusChanged({ ...offer, status: OfferStatus.Expired }))
+
+    expect(state.public.items).toHaveLength(0)
   })
 
   it('createOfferThunk.fulfilled adiciona a offer criada em mine.items com interestCount 0', () => {

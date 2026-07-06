@@ -24,7 +24,8 @@ export default defineConfig({
     css: true,
     coverage: {
       provider: 'v8',
-      reporter: ['text', 'html'],
+      // json-summary alimenta o script de CI que publica % no job summary e atualiza o badge do README
+      reporter: ['text', 'html', 'json-summary'],
       exclude: ['node_modules/', 'src/main.tsx', 'src/vite-env.d.ts']
     }
   }

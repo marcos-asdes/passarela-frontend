@@ -26,6 +26,20 @@ const slice = createSlice({
     /** Prepend de uma offer recebida via WebSocket (`offer:created`) — ignora se já estiver na lista. */
     offerReceived(state, action: PayloadAction<IOffer>) {
       if (!state.public.items.some((item) => item.id === action.payload.id)) state.public.items.unshift(action.payload)
+    },
+    /**
+     * Reage a `offer:status-changed` (encerramento manual ou expiração automática). O feed público
+     * nunca traz offers `Closed` (ver `findPublicFeed` no backend) — por isso, ao encerrar, a offer é
+     * removida da lista em vez de só ter o status atualizado, senão ficaria com o card sem tag e o
+     * botão "Tenho interesse" ainda habilitado.
+     */
+    offerStatusChanged(state, action: PayloadAction<IOffer>) {
+      if (action.payload.status === OfferStatus.Closed) {
+        state.public.items = state.public.items.filter((item) => item.id !== action.payload.id)
+        return
+      }
+      const item = state.public.items.find((o) => o.id === action.payload.id)
+      if (item) item.status = action.payload.status
     }
   },
   extraReducers: (builder) => {
@@ -103,7 +117,7 @@ const { select } = createBranchSelectors<OffersState>({
   fallback: initialState
 })
 
-export const { offerReceived } = slice.actions
+export const { offerReceived, offerStatusChanged } = slice.actions
 
 /** `true` enquanto `fetchMyOffersThunk` está em andamento. */
 export const selectMyOffersLoading = select((state) => state.mine.loading)

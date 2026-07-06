@@ -13,6 +13,7 @@ import {
 import { fetchMyInterestsThunk, registerInterestThunk, removeInterestThunk } from '@/store/reducers/interest/thunk'
 import {
   offerReceived,
+  offerStatusChanged,
   selectPublicOffers,
   selectPublicOffersError,
   selectPublicOffersLoading
@@ -49,6 +50,9 @@ export function useShopperFeed(): UseShopperFeedReturn {
     socket.on('offer:created', (offer: IOffer) => {
       dispatch(offerReceived(offer))
       notification.info({ message: 'Nova oferta!', description: offer.title })
+    })
+    socket.on('offer:status-changed', (offer: IOffer) => {
+      dispatch(offerStatusChanged(offer))
     })
     return () => {
       socket.disconnect()
