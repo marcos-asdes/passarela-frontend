@@ -12,8 +12,14 @@ import { describe, expect, it } from 'vitest'
 
 import { createThunk } from '@/utils/redux/createThunk'
 
-function buildStore() {
-  return configureStore({ reducer: (state = {}) => state })
+const reducer = (state: Record<string, never> = {}): Record<string, never> => state
+
+/**
+ * Tipo de retorno via `ReturnType<typeof configureStore<...>>` (não `EnhancedStore<S>` de mão) —
+ * preserva o `ThunkDispatch` que o `configureStore` já inclui por padrão nos middlewares.
+ */
+function buildStore(): ReturnType<typeof configureStore<Record<string, never>>> {
+  return configureStore({ reducer })
 }
 
 describe('createThunk', () => {

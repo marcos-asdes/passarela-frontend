@@ -29,7 +29,15 @@ export default defineConfig(
     },
     rules: {
       '@typescript-eslint/no-explicit-any': 'warn',
-      '@typescript-eslint/explicit-function-return-type': 'off',
+      /**
+       * Tipagem explícita é o padrão do projeto — `allowExpressions` libera só função/arrow inline
+       * (callback de JSX, validator de Form do antd, builder do Redux Toolkit), que são os casos
+       * raros de processo intermediário complexo demais pra anotar sem reescrever o tipo da lib.
+       */
+      '@typescript-eslint/explicit-function-return-type': [
+        'error',
+        { allowExpressions: true, allowTypedFunctionExpressions: true, allowHigherOrderFunctions: true }
+      ],
 
       /** Regras de estilo */
       curly: ['error', 'multi-or-nest'],
@@ -40,6 +48,20 @@ export default defineConfig(
         'error',
         { terms: ['@module', '@fileoverview', '@function', '@interface', '@type'], location: 'anywhere' }
       ]
+    }
+  },
+
+  {
+    files: ['src/styled.d.ts'],
+    rules: {
+      /**
+       * `interface DefaultTheme extends AppTheme {}` é o jeito oficial (documentado pelo próprio
+       * styled-components) de estender, de fora da lib, o tipo `DefaultTheme` que ela já declara —
+       * TypeScript só faz esse merge entre `interface`s com o mesmo nome, nunca com `type` (vira
+       * outra coisa, sem efeito nenhum: compila, mas `props.theme` perde a tipagem de `AppTheme`).
+       * Só essa exceção pontual, não um disable inline.
+       */
+      '@typescript-eslint/no-empty-object-type': 'off'
     }
   }
 )

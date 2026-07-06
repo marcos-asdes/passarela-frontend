@@ -29,7 +29,8 @@ export function createBranchSelectors<Branch>(opts: {
     return opts.fallback
   }
 
-  const select = <R>(projector: (branch: Branch) => R) => createSelector(selectBranch, projector)
+  const select = <R>(projector: (branch: Branch) => R): ((state: RootState) => R) =>
+    createSelector(selectBranch, projector)
 
   return { selectBranch, select }
 }
