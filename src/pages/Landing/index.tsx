@@ -10,9 +10,7 @@ function Landing(): ReactNode {
   return (
     <S.Page>
       <S.Hero>
-        <Typography.Title level={1} style={{ color: 'inherit' }}>
-          Passarela
-        </Typography.Title>
+        <S.Logo src="/logo.png" alt="Passarela" />
         <Typography.Paragraph type="secondary" style={{ fontSize: 18, maxWidth: 560, margin: '0 auto' }}>
           Ofertas relâmpago em tempo real das lojas do seu shopping. Lojistas publicam ofertas, clientes acompanham ao
           vivo.

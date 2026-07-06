@@ -46,6 +46,7 @@ function MerchantDashboard(): ReactNode {
           loading={loading}
           dataSource={offers}
           pagination={false}
+          scroll={{ x: 'max-content' }}
           columns={[
             { title: 'Título', dataIndex: 'title' },
             { title: 'Desconto', dataIndex: 'discountPercent', render: (value: number) => `${value}%` },

@@ -10,6 +10,12 @@ export const Hero = styled.div`
   padding: 80px 24px 48px;
 `
 
+export const Logo = styled.img`
+  width: 320px;
+  height: auto;
+  margin-bottom: 8px;
+`
+
 export const Content = styled.div`
   max-width: 900px;
   margin: 0 auto;

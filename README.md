@@ -1,4 +1,6 @@
-# Passarela — frontend
+<p align="center">
+  <img src="docs/logo.png" alt="Passarela" width="360" />
+</p>
 
 Interface de uma plataforma onde **merchants** de um shopping publicam flash deals e **shoppers** acompanham em tempo real as promoções ativas, podendo registrar interesse. Projeto desenvolvido em resposta a um desafio técnico para vaga de desenvolvedor fullstack pleno.
 
