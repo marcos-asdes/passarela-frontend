@@ -16,6 +16,9 @@ const slice = createSlice({
   reducers: {
     registerReset(state) {
       state.register = initialState.register
+    },
+    logout(state) {
+      state.login = initialState.login
     }
   },
   extraReducers: (builder) => {
@@ -54,7 +57,7 @@ const { select } = createBranchSelectors<AuthState>({
   fallback: initialState
 })
 
-export const { registerReset } = slice.actions
+export const { registerReset, logout } = slice.actions
 
 /** `true` enquanto `registerThunk` está em andamento. */
 export const selectRegisterLoading = select((state) => state.register.loading)
@@ -68,5 +71,7 @@ export const selectLoginLoading = select((state) => state.login.loading)
 export const selectLoginError = select((state) => state.login.error)
 /** Usuário autenticado, ou `null` antes do login. */
 export const selectLoginUser = select((state) => state.login.user)
+/** JWT da sessão ativa, ou `null` antes do login — usado pelo interceptor de Authorization. */
+export const selectLoginAccessToken = select((state) => state.login.accessToken)
 
 export default slice.reducer

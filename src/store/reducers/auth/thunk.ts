@@ -26,7 +26,7 @@ function mapLoginError(error: unknown): string {
   return 'Algo deu errado. Tente novamente.'
 }
 
-/** Cria uma conta (seller ou customer) — não emite token, login é uma chamada separada. */
+/** Cria uma conta (merchant ou shopper) — não emite token, login é uma chamada separada. */
 export const registerThunk = createThunk<RegisterResponse, RegisterPayload>('auth/register', async (payload) => {
   try {
     const response = await axiosApi.post<RegisterResponse>(API_AUTH_ROUTES.post.register, payload)

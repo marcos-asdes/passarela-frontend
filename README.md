@@ -6,9 +6,28 @@ Frontend em React 19 + Vite, consumindo a API do repositório irmão [`backend/`
 
 ## Estado atual
 
-Scaffold técnico: tooling (Vite, TypeScript, ESLint/Prettier, Vitest), Redux Toolkit, React Router e uma página de exemplo (`Home`, com o componente `Counter` e o reducer `health`) só para provar a integração ponta a ponta. Estrutura por camada técnica (`pages`, `store`, `routes`, `services`, `hooks`, `components`). Nenhuma feature de negócio implementada ainda.
+MVP completo do desafio, consumindo a API do repositório irmão [`backend/`](../backend). Cadastro/login pros dois papéis (merchant/shopper), dashboard do merchant (cria/encerra offers, vê contagem de interest) e feed do shopper (lista offers ativas, registra interest e recebe offers novas em tempo real via WebSocket). Estrutura por camada técnica (`pages`, `store`, `routes`, `services`, `hooks`, `components`).
 
-Decisões e trade-offs completos de arquitetura estão documentados em [`.claude/CLAUDE.md`](.claude/CLAUDE.md) — vale a leitura antes de propor mudanças estruturais.
+Decisões e trade-offs completos de arquitetura estão documentados em [`.claude/CLAUDE.md`](.claude/CLAUDE.md) e nos planos em [`.claude/plans/`](.claude/plans/) — vale a leitura antes de propor mudanças estruturais.
+
+### Páginas
+
+| Rota | Papel | Descrição |
+|---|---|---|
+| `/` | — | Landing, direciona pra login/cadastro de cada papel |
+| `/lojista/entrar`, `/lojista/cadastro` | — | Login/cadastro do merchant |
+| `/cliente/entrar`, `/cliente/cadastro` | — | Login/cadastro do shopper |
+| `/lojista/painel` | merchant | Dashboard: lista/cria/encerra offers, vê interessados |
+| `/cliente/ofertas` | shopper | Feed: offers ativas, registra interest, WebSocket em tempo real |
+
+`/lojista/painel` e `/cliente/ofertas` são protegidas por `RequireRole` (`src/routes/RequireRole/`) — sem sessão ou com papel errado, redireciona pra `/`.
+
+### Decisões técnicas e trade-offs assumidos
+
+- **Autenticação via interceptor do axios, não por thunk**: `src/services/api/interceptors/authToken.interceptor.ts` anexa `Authorization: Bearer <token>` em toda request. O token não é lido direto do `@/store` — os `thunk.ts` dos reducers já importam `axiosApi`, então o `@/store` importar de volta o axios fecha um ciclo de módulos ES que quebra em runtime (funciona em HMR incremental, quebra num carregamento a frio — "Cannot access 'X' before initialization"). A solução é um holder simples (`src/services/api/authToken.ts`, fora do grafo do Redux) sincronizado via `store.subscribe(...)` em `store/index.ts`.
+- **`RequireRole` é um guard simples**, sem lógica de refresh de token/expiração — suficiente pro MVP (o próprio backend já invalida sessão revogada/expirada, devolvendo 401, que os thunks traduzem em mensagem de erro).
+- **Dashboard do merchant não tem UI de edição** (`PATCH /offers/:id` existe no backend, mas o MVP só expõe criar/encerrar pela interface) — escopo reduzido de propósito pelo tempo do desafio.
+- **WebSocket conectado só enquanto o feed está montado** (`useShopperFeed`), não uma conexão global da aplicação — evita manter socket aberto em telas que não precisam dele.
 
 ## Stack Tecnológica
 
@@ -17,6 +36,7 @@ Decisões e trade-offs completos de arquitetura estão documentados em [`.claude
 - **Redux Toolkit** + **react-redux**
 - **React Router** (`react-router-dom`) para rotas
 - **Axios** para chamadas HTTP, direto no thunk (`src/store/reducers/<nome>/thunk.ts` + `src/services/api` + `src/services/apiRoutes`)
+- **Socket.IO client** (`socket.io-client`) — WebSocket do feed do shopper
 - **Ant Design** (componentes) + **styled-components** (estilização customizada)
 - **Vitest** + **Testing Library** para testes
 - **Docker** / Docker Compose (com fast refresh em desenvolvimento)

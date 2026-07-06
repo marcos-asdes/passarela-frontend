@@ -1,7 +1,7 @@
 /** Papéis suportados no cadastro — espelha o enum `UserRole` do `backend/` (auth/domain/types.ts). */
 export const UserRole = {
-  Seller: 'seller',
-  Customer: 'customer'
+  Merchant: 'merchant',
+  Shopper: 'shopper'
 } as const
 
 export type UserRole = (typeof UserRole)[keyof typeof UserRole]

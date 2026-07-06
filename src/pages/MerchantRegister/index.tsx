@@ -3,12 +3,12 @@ import { Link } from 'react-router-dom'
 
 import { AuthCard } from '@/components/AuthCard'
 import { RegisterForm } from '@/components/RegisterForm'
-import { useSellerRegister } from '@/pages/SellerRegister/useSellerRegister'
+import { useMerchantRegister } from '@/pages/MerchantRegister/useMerchantRegister'
 import { UserRole } from '@/store/reducers/auth/types'
 
-/** Cadastro de lojista — mesmo endpoint de registro do cliente, `role` fixo em `seller`. */
-function SellerRegister(): ReactNode {
-  const { handleSuccess } = useSellerRegister()
+/** Cadastro de lojista — mesmo endpoint de registro do cliente, `role` fixo em `merchant`. */
+function MerchantRegister(): ReactNode {
+  const { handleSuccess } = useMerchantRegister()
 
   return (
     <AuthCard
@@ -20,9 +20,9 @@ function SellerRegister(): ReactNode {
         </>
       }
     >
-      <RegisterForm role={UserRole.Seller} onSuccess={handleSuccess} />
+      <RegisterForm role={UserRole.Merchant} onSuccess={handleSuccess} />
     </AuthCard>
   )
 }
 
-export default SellerRegister
+export default MerchantRegister
