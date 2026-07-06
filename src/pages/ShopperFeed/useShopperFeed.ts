@@ -37,6 +37,7 @@ export function useShopperFeed(): UseShopperFeedReturn {
   const pendingOfferIds = useAppSelector(selectPendingOfferIds)
 
   const [currentPage, setCurrentPage] = useState(1)
+  const [showOnlyInterests, setShowOnlyInterests] = useState<boolean>(false)
 
   useEffect(() => {
     dispatch(fetchPublicOffersThunk())
@@ -68,9 +69,20 @@ export function useShopperFeed(): UseShopperFeedReturn {
     [dispatch]
   )
 
-  const totalOffers = offers.length
+  const handleToggleCartFilter = useCallback((): void => {
+    setShowOnlyInterests((current) => !current)
+    setCurrentPage(1)
+  }, [])
+
+  const handleSoftReload = useCallback((): void => {
+    void dispatch(fetchPublicOffersThunk())
+    void dispatch(fetchMyInterestsThunk())
+  }, [dispatch])
+
+  const visibleOffers = showOnlyInterests ? offers.filter((offer) => !!registeredInterests[offer.id]) : offers
+  const totalOffers = visibleOffers.length
   const start = (currentPage - 1) * PAGE_SIZE
-  const pagedOffers = offers.slice(start, start + PAGE_SIZE)
+  const pagedOffers = visibleOffers.slice(start, start + PAGE_SIZE)
 
   return {
     loading,
@@ -82,7 +94,10 @@ export function useShopperFeed(): UseShopperFeedReturn {
     onPageChange: setCurrentPage,
     registeredInterests,
     pendingOfferIds,
+    showOnlyInterests,
     handleRegisterInterest,
-    handleRemoveInterest
+    handleRemoveInterest,
+    handleToggleCartFilter,
+    handleSoftReload
   }
 }

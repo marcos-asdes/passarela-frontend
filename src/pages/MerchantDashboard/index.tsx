@@ -28,12 +28,13 @@ function MerchantDashboard(): ReactNode {
     handleOpenModal,
     handleCloseModal,
     handleCreateSubmit,
-    handleClose
+    handleClose,
+    handleSoftReload
   } = useMerchantDashboard()
 
   return (
     <>
-      <AppHeader />
+      <AppHeader onLogoClick={handleSoftReload} />
       <div style={{ maxWidth: 960, margin: '0 auto', padding: 24, paddingTop: 88 }}>
         <Typography.Title level={2}>Minhas ofertas</Typography.Title>
         {error && <Alert type="error" showIcon title={error} style={{ marginBottom: 16 }} />}

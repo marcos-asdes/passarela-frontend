@@ -1,45 +1,49 @@
 # Passarela — frontend
 
-MVP de uma plataforma onde merchants de um shopping publicam flash deals e shoppers acompanham em tempo real as promoções ativas, podendo expressar interest. Projeto desenvolvido em resposta a um desafio técnico para vaga de desenvolvedor fullstack pleno.
+Interface de uma plataforma onde **merchants** de um shopping publicam flash deals e **shoppers** acompanham em tempo real as promoções ativas, podendo registrar interesse. Projeto desenvolvido em resposta a um desafio técnico para vaga de desenvolvedor fullstack pleno.
 
-Frontend em React 19 + Vite, consumindo a API do repositório irmão [`backend/`](../backend), containerizado com Docker (com fast refresh no desenvolvimento).
+## O Desafio
 
-## Estado atual
+Construir em uma semana um MVP fullstack com dois papéis distintos (merchant e shopper), autenticação JWT, CRUD de ofertas com controle de estoque, notificações em tempo real via WebSocket e expiração automática de ofertas por job agendado.
 
-MVP completo do desafio, consumindo a API do repositório irmão [`backend/`](../backend). Cadastro/login pros dois papéis (merchant/shopper), dashboard do merchant (cria/encerra offers, vê contagem de interest) e feed do shopper (lista offers ativas, registra interest e recebe offers novas em tempo real via WebSocket). Estrutura por camada técnica (`pages`, `store`, `routes`, `services`, `hooks`, `components`).
+## Screenshots
 
-Decisões e trade-offs completos de arquitetura estão documentados em [`.claude/CLAUDE.md`](.claude/CLAUDE.md) e nos planos em [`.claude/plans/`](.claude/plans/) — vale a leitura antes de propor mudanças estruturais.
+| Landing | Login Merchant | Dashboard Merchant |
+|---|---|---|
+| ![Landing](docs/screenshots/landing.png) | ![Login](docs/screenshots/merchant-login.png) | ![Dashboard](docs/screenshots/merchant-dashboard.png) |
 
-### Páginas
+| Login Shopper | Feed Shopper |
+|---|---|
+| ![Login Shopper](docs/screenshots/shopper-login.png) | ![Feed](docs/screenshots/shopper-feed.png) |
+
+## Páginas
 
 | Rota | Papel | Descrição |
 |---|---|---|
-| `/` | — | Landing, direciona pra login/cadastro de cada papel |
-| `/lojista/entrar`, `/lojista/cadastro` | — | Login/cadastro do merchant |
-| `/cliente/entrar`, `/cliente/cadastro` | — | Login/cadastro do shopper |
-| `/lojista/painel` | merchant | Dashboard: lista/cria/encerra offers, vê interessados |
-| `/cliente/ofertas` | shopper | Feed: offers ativas, registra interest, WebSocket em tempo real |
+| `/` | — | Landing, direciona para login/cadastro de cada papel |
+| `/lojista/entrar` | — | Login do merchant |
+| `/lojista/cadastro` | — | Cadastro do merchant |
+| `/lojista/painel` | merchant | Dashboard: lista, cria e encerra offers; vê contagem de interessados |
+| `/cliente/entrar` | — | Login do shopper |
+| `/cliente/cadastro` | — | Cadastro do shopper |
+| `/cliente/ofertas` | shopper | Feed: offers ativas, registra interesse, recebe novas offers em tempo real via WebSocket |
 
-`/lojista/painel` e `/cliente/ofertas` são protegidas por `RequireRole` (`src/routes/RequireRole/`) — sem sessão ou com papel errado, redireciona pra `/`.
-
-### Decisões técnicas e trade-offs assumidos
-
-- **Autenticação via interceptor do axios, não por thunk**: `src/services/api/interceptors/authToken.interceptor.ts` anexa `Authorization: Bearer <token>` em toda request. O token não é lido direto do `@/store` — os `thunk.ts` dos reducers já importam `axiosApi`, então o `@/store` importar de volta o axios fecha um ciclo de módulos ES que quebra em runtime (funciona em HMR incremental, quebra num carregamento a frio — "Cannot access 'X' before initialization"). A solução é um holder simples (`src/services/api/authToken.ts`, fora do grafo do Redux) sincronizado via `store.subscribe(...)` em `store/index.ts`.
-- **`RequireRole` é um guard simples**, sem lógica de refresh de token/expiração — suficiente pro MVP (o próprio backend já invalida sessão revogada/expirada, devolvendo 401, que os thunks traduzem em mensagem de erro).
-- **Dashboard do merchant não tem UI de edição** (`PATCH /offers/:id` existe no backend, mas o MVP só expõe criar/encerrar pela interface) — escopo reduzido de propósito pelo tempo do desafio.
-- **WebSocket conectado só enquanto o feed está montado** (`useShopperFeed`), não uma conexão global da aplicação — evita manter socket aberto em telas que não precisam dele.
+`/lojista/painel` e `/cliente/ofertas` são protegidas por `RequireRole` — sem sessão válida ou com papel incorreto, redireciona para `/`.
 
 ## Stack Tecnológica
 
-- **Node.js 24 LTS**
-- **Vite** + **React 19** + **TypeScript**
-- **Redux Toolkit** + **react-redux**
-- **React Router** (`react-router-dom`) para rotas
-- **Axios** para chamadas HTTP, direto no thunk (`src/store/reducers/<nome>/thunk.ts` + `src/services/api` + `src/services/apiRoutes`)
-- **Socket.IO client** (`socket.io-client`) — WebSocket do feed do shopper
-- **Ant Design** (componentes) + **styled-components** (estilização customizada)
-- **Vitest** + **Testing Library** para testes
-- **Docker** / Docker Compose (com fast refresh em desenvolvimento)
+| Camada | Tecnologias |
+|---|---|
+| Runtime | Node.js 24 LTS |
+| Build | Vite |
+| UI | React 19 + TypeScript |
+| Estado global | Redux Toolkit + react-redux |
+| Roteamento | React Router (`react-router-dom`) |
+| HTTP | Axios |
+| Tempo real | Socket.IO client (`socket.io-client`) |
+| Componentes | Ant Design + styled-components |
+| Testes | Vitest + Testing Library |
+| Containerização | Docker + Docker Compose
 
 ## Como Rodar (Docker — preferencial)
 
@@ -48,7 +52,7 @@ cp .env.example .env
 docker compose up --build
 ```
 
-A aplicação fica disponível em `http://localhost:4000` (porta fixa — `strictPort: true` em `vite.config.ts`). Qualquer alteração em `src/` reinicia via HMR, sem rebuild manual da imagem.
+A aplicação fica disponível em `http://localhost:4000`. Qualquer alteração em `src/` atualiza via HMR, sem rebuild manual da imagem.
 
 ## Atalhos Docker (Makefile)
 
@@ -92,7 +96,7 @@ npm install
 npm run dev
 ```
 
-`VITE_API_URL` (`.env`) precisa apontar pro backend — ver [`.claude/CLAUDE.md`](.claude/CLAUDE.md#docker) pra combinações Docker/local.
+`VITE_API_URL` no `.env` precisa apontar para o backend em execução.
 
 ## Testes
 
@@ -113,7 +117,7 @@ npm run format
 
 ## Path Aliases
 
-Zero imports relativos — sempre via alias: `@/*` (aponta pra `src/*`) e `@test-utils` (aponta pro helper de teste em `__tests__/test-utils.tsx`). Detalhes em [`.claude/CLAUDE.md`](.claude/CLAUDE.md#path-aliases).
+Zero imports relativos — sempre via alias: `@/*` aponta para `src/*` e `@test-utils` aponta para o helper de teste em `__tests__/test-utils.tsx`.
 
 ## Licença
 

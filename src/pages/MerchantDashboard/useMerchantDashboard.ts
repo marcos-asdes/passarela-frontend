@@ -3,6 +3,8 @@ import { useCallback, useEffect, useState } from 'react'
 import { useAppDispatch } from '@/hooks/useAppDispatch'
 import { useAppSelector } from '@/hooks/useAppSelector'
 import type { CreateOfferFormValues, UseMerchantDashboardReturn } from '@/pages/MerchantDashboard/types'
+import { createMerchantSocket } from '@/services/socket/merchantSocket'
+import { selectLoginUser } from '@/store/reducers/auth/slice'
 import {
   selectCloseOfferLoading,
   selectCreateOfferError,
@@ -13,9 +15,14 @@ import {
 } from '@/store/reducers/offers/slice'
 import { closeOfferThunk, createOfferThunk, fetchMyOffersThunk } from '@/store/reducers/offers/thunk'
 
-/** Dashboard do merchant: busca as offers próprias no mount, cria/encerra offers. */
+/**
+ * Dashboard do merchant: busca as offers próprias no mount, cria/encerra offers, e conecta ao
+ * WebSocket pra refletir em tempo real mudanças de status (encerrada/expirada) e contagem de
+ * interest — sem isso, o dashboard só atualizava com um reload manual da página.
+ */
 export function useMerchantDashboard(): UseMerchantDashboardReturn {
   const dispatch = useAppDispatch()
+  const merchant = useAppSelector(selectLoginUser)
   const loading = useAppSelector(selectMyOffersLoading)
   const error = useAppSelector(selectMyOffersError)
   const offers = useAppSelector(selectMyOffers)
@@ -26,6 +33,25 @@ export function useMerchantDashboard(): UseMerchantDashboardReturn {
 
   useEffect(() => {
     dispatch(fetchMyOffersThunk())
+  }, [dispatch])
+
+  useEffect(() => {
+    if (!merchant) return
+
+    const socket = createMerchantSocket(merchant.id)
+    const refetch = (): void => {
+      void dispatch(fetchMyOffersThunk())
+    }
+    socket.on('offer:updated', refetch)
+    socket.on('offer:interest-changed', refetch)
+
+    return () => {
+      socket.disconnect()
+    }
+  }, [dispatch, merchant])
+
+  const handleSoftReload = useCallback((): void => {
+    void dispatch(fetchMyOffersThunk())
   }, [dispatch])
 
   const handleOpenModal = useCallback((): void => {
@@ -70,6 +96,7 @@ export function useMerchantDashboard(): UseMerchantDashboardReturn {
     handleOpenModal,
     handleCloseModal,
     handleCreateSubmit,
-    handleClose
+    handleClose,
+    handleSoftReload
   }
 }

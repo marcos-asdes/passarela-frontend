@@ -24,4 +24,5 @@ export interface UseMerchantDashboardReturn {
   handleCloseModal: () => void
   handleCreateSubmit: (values: CreateOfferFormValues) => Promise<void>
   handleClose: (offerId: string) => Promise<void>
+  handleSoftReload: () => void
 }

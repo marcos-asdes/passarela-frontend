@@ -28,13 +28,13 @@ export const Inner = styled.div`
   justify-content: space-between;
 `
 
-export const Logo = styled.span`
+export const Logo = styled.span<{ $clickable: boolean }>`
   font-size: 22px;
   font-weight: ${({ theme }) => theme.font.weightSemibold};
   color: ${({ theme }) => theme.colors.primary};
   letter-spacing: -0.5px;
-  cursor: default;
   user-select: none;
+  cursor: ${({ $clickable }) => ($clickable ? 'pointer' : 'default')};
 `
 
 export const Actions = styled.div`

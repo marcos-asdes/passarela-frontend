@@ -25,6 +25,9 @@ RUN npm run build
 # ---- Estágio: production ----
 # nginxinc/nginx-unprivileged: master e workers rodam como usuário nginx (uid 101), não root; escuta 8080 (porta < 1024 exige root)
 FROM nginxinc/nginx-unprivileged:1.29-alpine AS production
+# try_files com fallback pro index.html — sem isso, refresh/deep-link em qualquer rota do React Router
+# (ex.: /lojista/painel) 404 direto no Nginx, que só conhece arquivos reais em disco.
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=build /usr/src/app/dist /usr/share/nginx/html
 EXPOSE 8080
 CMD ["nginx", "-g", "daemon off;"]

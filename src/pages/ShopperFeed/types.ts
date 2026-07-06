@@ -14,6 +14,10 @@ export interface UseShopperFeedReturn {
   registeredInterests: Record<string, string>
   /** IDs de offers em processamento — loading por card individual. */
   pendingOfferIds: string[]
+  /** `true` quando o feed está filtrado só pros itens com interesse registrado (toggle do carrinho). */
+  showOnlyInterests: boolean
   handleRegisterInterest: (offerId: string) => Promise<void>
   handleRemoveInterest: (offerId: string) => Promise<void>
+  handleToggleCartFilter: () => void
+  handleSoftReload: () => void
 }
