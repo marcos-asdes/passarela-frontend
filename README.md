@@ -32,6 +32,24 @@ Construir em uma semana um MVP fullstack com dois papéis distintos (merchant e 
 
 `/lojista/painel` e `/cliente/ofertas` são protegidas por `RequireRole` — sem sessão válida ou com papel incorreto, redireciona para `/`.
 
+## Além do Desafio
+
+Pontos implementados além do escopo mínimo do desafio:
+
+### Redux
+
+- Toda chamada de API passa por thunk (`createThunk`), nunca `useState` direto num componente — loading e erro sempre centralizados no Redux.
+- Seletores memoizados (`createBranchSelectors`), nunca leitura direta do state num componente.
+- Persistência seletiva: só a sessão de login sobrevive a um refresh; formulários e dados de servidor não.
+- Estado persistido é criptografado (AES) fora de ambiente de dev.
+
+### Outros pontos relevantes
+
+- Sessão expirada ou revogada é detectada globalmente: um interceptor do Axios pega qualquer `401` inesperado e aciona modal + logout automático.
+- Tempo real via WebSocket, por papel: shopper recebe novas ofertas no feed; merchant recebe atualização de status e contagem de interesse.
+- Padrão de hook por componente: lógica (estado, efeitos, handlers) sempre num `use<Nome>.ts`; `index.tsx` só renderiza.
+- Code splitting por rota (`lazy()`) e tipagem explícita em toda a base.
+
 ## Stack Tecnológica
 
 | Camada | Tecnologias |
