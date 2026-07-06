@@ -3,7 +3,7 @@
  *
  * Cenários testados:
  * - registerInterestThunk: envia { offerId } pro endpoint e retorna offerId + interestId
- * - registerInterestThunk.fulfilled: adiciona o offerId em registeredOfferIds
+ * - registerInterestThunk.fulfilled: adiciona o offerId em registeredInterests
  * - registerInterestThunk: traduz erro 409 numa mensagem específica de "já demonstrou interesse"
  */
 
@@ -12,7 +12,7 @@ import { describe, expect, it, vi } from 'vitest'
 
 import { axiosApi } from '@/services/api/axiosApi'
 import type { RootState } from '@/store'
-import interestReducer, { selectRegisteredOfferIds } from '@/store/reducers/interest/slice'
+import interestReducer, { selectRegisteredInterests } from '@/store/reducers/interest/slice'
 import { registerInterestThunk } from '@/store/reducers/interest/thunk'
 
 vi.mock('@/services/api/axiosApi', () => ({
@@ -37,13 +37,13 @@ describe('interest thunk/reducer', () => {
     })
   })
 
-  it('fulfilled adiciona o offerId em registeredOfferIds', async () => {
+  it('fulfilled adiciona o offerId em registeredInterests', async () => {
     vi.mocked(axiosApi.post).mockResolvedValue({ data: { id: 'interest-1' } })
     const store = buildStore()
 
     await store.dispatch(registerInterestThunk('offer-1'))
 
-    expect(selectRegisteredOfferIds(store.getState() as unknown as RootState)).toEqual(['offer-1'])
+    expect(selectRegisteredInterests(store.getState() as unknown as RootState)).toEqual({ 'offer-1': 'interest-1' })
   })
 
   it('traduz erro 409 numa mensagem específica', async () => {
@@ -54,6 +54,6 @@ describe('interest thunk/reducer', () => {
 
     expect(registerInterestThunk.rejected.match(action)).toBe(true)
     if (registerInterestThunk.rejected.match(action))
-      expect(action.payload).toBe('Você já demonstrou interesse nessa offer, ou ela ficou indisponível.')
+      expect(action.payload).toBe('Você já demonstrou interesse nessa oferta, ou ela ficou indisponível.')
   })
 })

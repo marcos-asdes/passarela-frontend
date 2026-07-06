@@ -41,7 +41,13 @@ export interface LoginResponse {
   user: AuthUser
 }
 
-/** Estado do reducer `auth`: `register` e `login` tratados de forma independente. */
+/** Corpo de resposta de `GET /auth/me` — nome/e-mail nunca vêm junto do login, só desse endpoint dedicado. */
+export interface ProfileResponse {
+  name: string
+  email: string
+}
+
+/** Estado do reducer `auth`: `register`, `login` e `profile` tratados de forma independente. */
 export interface AuthState {
   register: {
     loading: boolean
@@ -53,5 +59,11 @@ export interface AuthState {
     error: string | null
     accessToken: string | null
     user: AuthUser | null
+  }
+  profile: {
+    loading: boolean
+    error: string | null
+    name: string | null
+    email: string | null
   }
 }

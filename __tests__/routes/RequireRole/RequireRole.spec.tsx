@@ -36,7 +36,8 @@ function renderProtected(
       preloadedState: {
         auth: {
           register: { loading: false, error: null, success: false },
-          login: { loading: false, error: null, accessToken: preloadedUser ? 'token' : null, user: preloadedUser }
+          login: { loading: false, error: null, accessToken: preloadedUser ? 'token' : null, user: preloadedUser },
+          profile: { loading: false, error: null, name: null, email: null }
         }
       }
     }

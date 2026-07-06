@@ -1,15 +1,16 @@
 import { createSlice } from '@reduxjs/toolkit'
 
-import { loginThunk, registerThunk } from '@/store/reducers/auth/thunk'
+import { fetchProfileThunk, loginThunk, registerThunk } from '@/store/reducers/auth/thunk'
 import type { AuthState } from '@/store/reducers/auth/types'
 import { createBranchSelectors } from '@/utils/redux/createBranchSelectors'
 
 export const initialState: AuthState = {
   register: { loading: false, error: null, success: false },
-  login: { loading: false, error: null, accessToken: null, user: null }
+  login: { loading: false, error: null, accessToken: null, user: null },
+  profile: { loading: false, error: null, name: null, email: null }
 }
 
-/** Slice `auth`: trata `registerThunk` e `loginThunk` de forma independente, cada um com seu próprio loading/error. */
+/** Slice `auth`: trata `registerThunk`, `loginThunk` e `fetchProfileThunk` de forma independente, cada um com seu próprio loading/error. */
 const slice = createSlice({
   name: 'auth',
   initialState,
@@ -19,6 +20,7 @@ const slice = createSlice({
     },
     logout(state) {
       state.login = initialState.login
+      state.profile = initialState.profile
     }
   },
   extraReducers: (builder) => {
@@ -49,6 +51,19 @@ const slice = createSlice({
         state.login.loading = false
         state.login.error = action.payload ?? 'Something went wrong. Please try again.'
       })
+      .addCase(fetchProfileThunk.pending, (state) => {
+        state.profile.loading = true
+        state.profile.error = null
+      })
+      .addCase(fetchProfileThunk.fulfilled, (state, action) => {
+        state.profile.loading = false
+        state.profile.name = action.payload.name
+        state.profile.email = action.payload.email
+      })
+      .addCase(fetchProfileThunk.rejected, (state, action) => {
+        state.profile.loading = false
+        state.profile.error = action.payload ?? 'Something went wrong. Please try again.'
+      })
   }
 })
 
@@ -73,5 +88,13 @@ export const selectLoginError = select((state) => state.login.error)
 export const selectLoginUser = select((state) => state.login.user)
 /** JWT da sessão ativa, ou `null` antes do login — usado pelo interceptor de Authorization. */
 export const selectLoginAccessToken = select((state) => state.login.accessToken)
+/** `true` enquanto `fetchProfileThunk` está em andamento. */
+export const selectProfileLoading = select((state) => state.profile.loading)
+/** Mensagem de erro da última falha de `fetchProfileThunk`, ou `null` — trava novas tentativas automáticas. */
+export const selectProfileError = select((state) => state.profile.error)
+/** Nome do usuário autenticado, ou `null` antes de `fetchProfileThunk` resolver. */
+export const selectProfileName = select((state) => state.profile.name)
+/** E-mail do usuário autenticado, ou `null` antes de `fetchProfileThunk` resolver. */
+export const selectProfileEmail = select((state) => state.profile.email)
 
 export default slice.reducer

@@ -9,6 +9,7 @@ import { PersistGate } from 'redux-persist/integration/react'
 import { ThemeProvider } from 'styled-components'
 
 import { LoadingFallback } from '@/components/LoadingFallback'
+import { SessionExpiredWatcher } from '@/components/SessionExpiredWatcher'
 import { Routes } from '@/routes/Routes'
 import store, { persistor } from '@/store'
 import { theme } from '@/theme'
@@ -44,6 +45,7 @@ function App(): ReactNode {
         >
           <ThemeProvider theme={theme}>
             <AntApp>
+              <SessionExpiredWatcher />
               <PersistGate persistor={persistor} loading={<LoadingFallback />}>
                 <Routes />
               </PersistGate>

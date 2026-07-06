@@ -43,9 +43,23 @@ export const Actions = styled.div`
   gap: 8px;
 `
 
-export const Greeting = styled.span`
+export const GreetingBlock = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  line-height: 1.25;
+  margin-right: 4px;
+`
+
+export const GreetingName = styled.span`
   font-size: 14px;
-  color: ${({ theme }) => theme.colors.textSecondary};
+  color: ${({ theme }) => theme.colors.text};
   font-weight: ${({ theme }) => theme.font.weightMedium};
+  white-space: nowrap;
+`
+
+export const GreetingEmail = styled.span`
+  font-size: 12px;
+  color: ${({ theme }) => theme.colors.textSecondary};
   white-space: nowrap;
 `

@@ -96,6 +96,6 @@ describe('offers thunks', () => {
 
     expect(closeOfferThunk.rejected.match(action)).toBe(true)
     if (closeOfferThunk.rejected.match(action))
-      expect(action.payload).toBe('Essa offer não pode mais ser editada/encerrada.')
+      expect(action.payload).toBe('Essa oferta não pode mais ser editada/encerrada.')
   })
 })

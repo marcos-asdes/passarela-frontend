@@ -10,6 +10,13 @@ CMD ["npm", "run", "dev", "--", "--host"]
 # ---- Estágio: build ----
 FROM node:24-alpine AS build
 WORKDIR /usr/src/app
+# VITE_REDUX_PERSIST_ENCRYPTION_KEY não é segredo protegível por build-arg: o Vite injeta seu valor
+# literal no bundle JS enviado ao browser (import.meta.env em build time), então já é público
+# independente de como chega até aqui — só ofusca leitura casual do localStorage, não é boundary de segurança.
+ARG VITE_API_URL
+ARG VITE_REDUX_PERSIST_ENCRYPTION_KEY
+ENV VITE_API_URL=$VITE_API_URL
+ENV VITE_REDUX_PERSIST_ENCRYPTION_KEY=$VITE_REDUX_PERSIST_ENCRYPTION_KEY
 COPY package*.json ./
 RUN npm ci
 COPY . .

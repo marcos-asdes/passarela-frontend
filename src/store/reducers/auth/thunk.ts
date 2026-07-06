@@ -2,7 +2,13 @@ import axios from 'axios'
 
 import { axiosApi } from '@/services/api/axiosApi'
 import { API_AUTH_ROUTES } from '@/services/apiRoutes/auth'
-import type { LoginPayload, LoginResponse, RegisterPayload, RegisterResponse } from '@/store/reducers/auth/types'
+import type {
+  LoginPayload,
+  LoginResponse,
+  ProfileResponse,
+  RegisterPayload,
+  RegisterResponse
+} from '@/store/reducers/auth/types'
 import { createThunk } from '@/utils/redux/createThunk'
 
 /**
@@ -44,4 +50,15 @@ export const loginThunk = createThunk<LoginResponse, LoginPayload>('auth/login',
   } catch (error) {
     throw new Error(mapLoginError(error), { cause: error })
   }
+})
+
+/** Busca nome/e-mail do usuário autenticado — endpoint dedicado, nunca vem junto da resposta de login. */
+export const fetchProfileThunk = createThunk<ProfileResponse, void>('auth/fetchProfile', async () => {
+  const response = await axiosApi.get<ProfileResponse>(API_AUTH_ROUTES.get.me)
+  return response.data
+})
+
+/** Revoga a sessão atual no backend — best-effort: quem chama limpa o estado local independente do resultado. */
+export const logoutThunk = createThunk<void, void>('auth/logout', async () => {
+  await axiosApi.post(API_AUTH_ROUTES.post.logout)
 })
