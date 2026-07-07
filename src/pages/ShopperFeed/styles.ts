@@ -1,9 +1,10 @@
+import { Card } from 'antd'
 import styled from 'styled-components'
 
 export const PageWrapper = styled.div`
-  min-height: 100vh;
+  min-height: calc(100vh - 64px); /* 64px = altura do AppHeader fixo, já compensada pelo padding-top abaixo */
   background: ${({ theme }) => theme.colors.background};
-  padding-top: 64px; /* altura do AppHeader fixo */
+  padding-top: 64px;
 `
 
 export const Content = styled.main`
@@ -17,6 +18,27 @@ export const PageTitle = styled.h1`
   font-weight: ${({ theme }) => theme.font.weightSemibold};
   color: ${({ theme }) => theme.colors.text};
   margin: 0 0 24px;
+`
+
+export const OfferCard = styled(Card)`
+  height: 100%;
+
+  .ant-card-body {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+`
+
+export const OfferDescription = styled.p`
+  height: 40px; /* 2 linhas de 13px/1.54, mesma altura em todo card pra alinhar os botões */
+  margin: 6px 0 0;
+  font-size: 13px;
+  color: ${({ theme }) => theme.colors.textSecondary};
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
 `
 
 export const CardMeta = styled.div`
@@ -57,7 +79,8 @@ export const StatusTag = styled.span<{ $variant: 'expired' | 'soldout' }>`
 `
 
 export const CardActions = styled.div`
-  margin-top: 16px;
+  margin-top: auto;
+  padding-top: 16px;
 `
 
 export const PaginationWrapper = styled.div`

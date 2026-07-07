@@ -1,4 +1,4 @@
-import { Alert, Card, Col, Pagination, Row, Spin, Typography } from 'antd'
+import { Alert, Col, Pagination, Row, Spin, Typography } from 'antd'
 import type { ReactNode } from 'react'
 
 import { AppHeader } from '@/components/AppHeader'
@@ -93,17 +93,11 @@ function ShopperFeed(): ReactNode {
 
             return (
               <Col xs={24} sm={12} lg={8} xl={6} key={offer.id}>
-                <Card style={{ height: '100%', opacity: isUnavailable ? 0.7 : 1 }}>
+                <S.OfferCard style={{ opacity: isUnavailable ? 0.7 : 1 }}>
                   <Typography.Text strong style={{ fontSize: 15 }}>
                     {offer.title}
                   </Typography.Text>
-                  <Typography.Paragraph
-                    type="secondary"
-                    style={{ marginTop: 6, marginBottom: 0, fontSize: 13 }}
-                    ellipsis={{ rows: 2 }}
-                  >
-                    {offer.description}
-                  </Typography.Paragraph>
+                  <S.OfferDescription title={offer.description}>{offer.description}</S.OfferDescription>
 
                   <S.CardMeta>
                     <S.DiscountTag>{offer.discountPercent}% OFF</S.DiscountTag>
@@ -113,7 +107,7 @@ function ShopperFeed(): ReactNode {
                   </S.CardMeta>
 
                   <S.CardActions>{actionButton}</S.CardActions>
-                </Card>
+                </S.OfferCard>
               </Col>
             )
           })}
