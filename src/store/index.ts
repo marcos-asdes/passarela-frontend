@@ -20,7 +20,7 @@ const authPersistConfig: PersistConfig<AuthState> = {
   key: 'passarela_auth',
   storage,
   whitelist: ['login'],
-  transforms: import.meta.env.DEV ? [] : [createEncryptor()]
+  transforms: import.meta.env.DEV ? [] : [createEncryptor<AuthState>()]
 }
 
 /** Root reducer da aplicação — um reducer por bounded state em `store/reducers/`. `offers`/`interest`
