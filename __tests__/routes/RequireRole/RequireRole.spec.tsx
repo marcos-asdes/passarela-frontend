@@ -7,7 +7,7 @@
  * - renderiza os filhos quando o papel autenticado bate com o exigido
  */
 
-import { MemoryRouter, Route, Routes } from 'react-router-dom'
+import { Route, Routes } from 'react-router-dom'
 import { describe, expect, it } from 'vitest'
 
 import { RequireRole } from '@/routes/RequireRole'
@@ -19,20 +19,19 @@ function renderProtected(
   preloadedUser: { id: string; role: UserRole } | null
 ): ReturnType<typeof renderWithStore> {
   return renderWithStore(
-    <MemoryRouter initialEntries={['/protegida']}>
-      <Routes>
-        <Route path="/" element={<div>página pública</div>} />
-        <Route
-          path="/protegida"
-          element={
-            <RequireRole role={role}>
-              <div>conteúdo protegido</div>
-            </RequireRole>
-          }
-        />
-      </Routes>
-    </MemoryRouter>,
+    <Routes>
+      <Route path="/" element={<div>página pública</div>} />
+      <Route
+        path="/protegida"
+        element={
+          <RequireRole role={role}>
+            <div>conteúdo protegido</div>
+          </RequireRole>
+        }
+      />
+    </Routes>,
     {
+      route: '/protegida',
       preloadedState: {
         auth: {
           register: { loading: false, error: null, success: false },

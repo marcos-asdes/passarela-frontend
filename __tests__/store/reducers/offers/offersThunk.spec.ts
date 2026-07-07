@@ -6,7 +6,7 @@
  * - createOfferThunk: envia o payload pro endpoint de criação e retorna a offer criada
  * - closeOfferThunk: chama o endpoint de encerramento com o id da offer
  * - fetchPublicOffersThunk: repassa o status como query param
- * - qualquer thunk: traduz erro 409 numa mensagem específica de "não pode mais ser editada"
+ * - qualquer thunk: traduz erro 409/403/404 numa mensagem específica; erro não-axios cai na genérica
  */
 
 import { configureStore } from '@reduxjs/toolkit'
@@ -88,14 +88,18 @@ describe('offers thunks', () => {
     expect(axiosApi.get).toHaveBeenCalledWith('/offers', { params: { status: OfferStatus.SoldOut } })
   })
 
-  it('traduz erro 409 numa mensagem específica', async () => {
-    vi.mocked(axiosApi.post).mockRejectedValue({ isAxiosError: true, response: { status: 409 } })
+  it.each([
+    ['409', { isAxiosError: true, response: { status: 409 } }, 'Essa oferta não pode mais ser editada/encerrada.'],
+    ['403', { isAxiosError: true, response: { status: 403 } }, 'Você não tem permissão sobre essa oferta.'],
+    ['404', { isAxiosError: true, response: { status: 404 } }, 'Oferta não encontrada.'],
+    ['não-axios', new Error('falha de rede'), 'Algo deu errado. Tente novamente.']
+  ])('traduz erro %s numa mensagem específica', async (_descricao, rejectedValue, expectedMessage) => {
+    vi.mocked(axiosApi.post).mockRejectedValue(rejectedValue)
     const store = buildStore()
 
     const action = await store.dispatch(closeOfferThunk('offer-1'))
 
     expect(closeOfferThunk.rejected.match(action)).toBe(true)
-    if (closeOfferThunk.rejected.match(action))
-      expect(action.payload).toBe('Essa oferta não pode mais ser editada/encerrada.')
+    if (closeOfferThunk.rejected.match(action)) expect(action.payload).toBe(expectedMessage)
   })
 })

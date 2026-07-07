@@ -1,11 +1,10 @@
 import { Alert, DatePicker, Form, Input, InputNumber, Modal, Table, Tag, Typography } from 'antd'
-import dayjs from 'dayjs'
 import type { ReactNode } from 'react'
 
 import { AppHeader } from '@/components/AppHeader'
 import { Button } from '@/components/Button'
 import type { CreateOfferFormValues } from '@/pages/MerchantDashboard/types'
-import { useMerchantDashboard } from '@/pages/MerchantDashboard/useMerchantDashboard'
+import { isPastDate, useMerchantDashboard } from '@/pages/MerchantDashboard/useMerchantDashboard'
 import { OfferStatus, type IMerchantOffer } from '@/store/reducers/offers/types'
 
 const STATUS_LABEL: Record<OfferStatus, string> = {
@@ -94,12 +93,7 @@ function MerchantDashboard(): ReactNode {
               <InputNumber style={{ width: '100%' }} min={0} precision={0} />
             </Form.Item>
             <Form.Item name="validUntil" label="Válida até" rules={[{ required: true }]}>
-              <DatePicker
-                style={{ width: '100%' }}
-                showTime
-                format="DD/MM/YYYY HH:mm"
-                disabledDate={(date) => date.isBefore(dayjs())}
-              />
+              <DatePicker style={{ width: '100%' }} showTime format="DD/MM/YYYY HH:mm" disabledDate={isPastDate} />
             </Form.Item>
             <Form.Item>
               <Button type="primary" htmlType="submit" fullWidth loading={createLoading}>

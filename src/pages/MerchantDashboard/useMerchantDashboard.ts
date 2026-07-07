@@ -1,3 +1,4 @@
+import dayjs, { type Dayjs } from 'dayjs'
 import { useCallback, useEffect, useState } from 'react'
 
 import { useAppDispatch } from '@/hooks/useAppDispatch'
@@ -14,6 +15,11 @@ import {
   selectMyOffersLoading
 } from '@/store/reducers/offers/slice'
 import { closeOfferThunk, createOfferThunk, fetchMyOffersThunk } from '@/store/reducers/offers/thunk'
+
+/** Impede escolher uma data de validade já vencida no DatePicker de "Nova oferta". */
+export function isPastDate(date: Dayjs): boolean {
+  return date.isBefore(dayjs())
+}
 
 /**
  * Dashboard do merchant: busca as offers próprias no mount, cria/encerra offers, e conecta ao

@@ -1,0 +1,61 @@
+/**
+ * Testes unitários para RegisterForm (integra useRegisterForm)
+ *
+ * Cenários testados:
+ * - cadastro com sucesso: envia payload com cpf/telefone só com dígitos e chama onSuccess
+ * - cadastro com e-mail/cpf já cadastrado: mostra alerta de erro e não chama onSuccess
+ */
+
+import userEvent from '@testing-library/user-event'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+
+import { RegisterForm } from '@/components/RegisterForm'
+import { axiosApi } from '@/services/api/axiosApi'
+import { UserRole } from '@/store/reducers/auth/types'
+import { renderWithStore } from '@test-utils'
+
+vi.mock('@/services/api/axiosApi', () => ({
+  axiosApi: { post: vi.fn() }
+}))
+
+async function fillAndSubmit(screen: ReturnType<typeof renderWithStore>): Promise<void> {
+  await userEvent.type(screen.getByLabelText('Nome completo'), 'Maria da Silva')
+  await userEvent.type(screen.getByLabelText('E-mail'), 'maria@teste.com')
+  await userEvent.type(screen.getByLabelText('CPF'), '52998224725')
+  await userEvent.type(screen.getByLabelText('Telefone'), '11987654321')
+  await userEvent.type(screen.getByLabelText('Data de nascimento'), '01/01/1990{Escape}')
+  await userEvent.type(screen.getByLabelText('Senha'), 'SenhaForte123!')
+  await userEvent.type(screen.getByLabelText('Confirmar senha'), 'SenhaForte123!')
+  await userEvent.click(screen.getByRole('button', { name: 'Criar conta' }))
+}
+
+describe('RegisterForm', () => {
+  beforeEach(() => {
+    vi.mocked(axiosApi.post).mockReset()
+  })
+
+  it('cadastro com sucesso envia payload normalizado e chama onSuccess', async () => {
+    vi.mocked(axiosApi.post).mockResolvedValue({ data: { message: 'Conta criada com sucesso.' } })
+    const onSuccess = vi.fn()
+    const screen = renderWithStore(<RegisterForm role={UserRole.Shopper} onSuccess={onSuccess} />)
+
+    await fillAndSubmit(screen)
+
+    await vi.waitFor(() => expect(onSuccess).toHaveBeenCalledTimes(1))
+    expect(axiosApi.post).toHaveBeenCalledWith(
+      '/auth/register',
+      expect.objectContaining({ cpf: '52998224725', phone: '11987654321', role: UserRole.Shopper })
+    )
+  })
+
+  it('cadastro com e-mail/cpf já cadastrado mostra alerta de erro e não chama onSuccess', async () => {
+    vi.mocked(axiosApi.post).mockRejectedValue({ isAxiosError: true, response: { status: 409 } })
+    const onSuccess = vi.fn()
+    const screen = renderWithStore(<RegisterForm role={UserRole.Shopper} onSuccess={onSuccess} />)
+
+    await fillAndSubmit(screen)
+
+    expect(await screen.findByText('Este e-mail ou CPF já está cadastrado.')).toBeInTheDocument()
+    expect(onSuccess).not.toHaveBeenCalled()
+  })
+})

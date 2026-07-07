@@ -29,15 +29,6 @@ export default defineConfig(
     },
     rules: {
       '@typescript-eslint/no-explicit-any': 'warn',
-      /**
-       * Tipagem explícita é o padrão do projeto — `allowExpressions` libera só função/arrow inline
-       * (callback de JSX, validator de Form do antd, builder do Redux Toolkit), que são os casos
-       * raros de processo intermediário complexo demais pra anotar sem reescrever o tipo da lib.
-       */
-      '@typescript-eslint/explicit-function-return-type': [
-        'error',
-        { allowExpressions: true, allowTypedFunctionExpressions: true, allowHigherOrderFunctions: true }
-      ],
 
       /** Regras de estilo */
       curly: ['error', 'multi-or-nest'],
@@ -47,6 +38,22 @@ export default defineConfig(
       'no-warning-comments': [
         'error',
         { terms: ['@module', '@fileoverview', '@function', '@interface', '@type'], location: 'anywhere' }
+      ]
+    }
+  },
+
+  {
+    files: ['src/**/*.{ts,tsx}'],
+    rules: {
+      /**
+       * Tipagem explícita é o padrão do projeto — `allowExpressions` libera só função/arrow inline
+       * (callback de JSX, validator de Form do antd, builder do Redux Toolkit), que são os casos
+       * raros de processo intermediário complexo demais pra anotar sem reescrever o tipo da lib.
+       * Escopo só em `src/`: teste (`__tests__/`) não precisa dessa disciplina de tipagem.
+       */
+      '@typescript-eslint/explicit-function-return-type': [
+        'error',
+        { allowExpressions: true, allowTypedFunctionExpressions: true, allowHigherOrderFunctions: true }
       ]
     }
   },

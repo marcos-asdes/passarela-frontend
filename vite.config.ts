@@ -26,7 +26,23 @@ export default defineConfig({
       provider: 'v8',
       // json-summary alimenta o script de CI que publica % no job summary e atualiza o badge do README
       reporter: ['text', 'html', 'json-summary'],
-      exclude: ['node_modules/', 'src/main.tsx', 'src/vite-env.d.ts']
+      // include força a instrumentação da árvore inteira de src/, não só dos arquivos que algum spec importou
+      include: ['src/**/*.{ts,tsx}'],
+      // Composição pura (wiring de providers/rotas/store) e styled-components — sem lógica de negócio pra
+      // testar, mesmo espírito da exclusão de *.module.ts no backend
+      exclude: [
+        'node_modules/',
+        'src/main.tsx',
+        'src/vite-env.d.ts',
+        'src/**/types.ts',
+        'src/**/*.d.ts',
+        'src/App.tsx',
+        'src/theme.ts',
+        'src/routes/Routes.tsx',
+        'src/store/index.ts',
+        'src/services/api/axiosApi.ts',
+        'src/**/styles.ts'
+      ]
     }
   }
 })

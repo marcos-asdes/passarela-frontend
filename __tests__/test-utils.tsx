@@ -1,17 +1,21 @@
-import { configureStore } from '@reduxjs/toolkit'
+import { combineReducers, configureStore } from '@reduxjs/toolkit'
 import { render } from '@testing-library/react'
+import { App as AntApp } from 'antd'
 import type { ReactElement, ReactNode } from 'react'
 import { Provider } from 'react-redux'
+import { MemoryRouter } from 'react-router-dom'
+import { ThemeProvider } from 'styled-components'
 
 import authReducer from '@/store/reducers/auth'
-import type { AuthState } from '@/store/reducers/auth/types'
+import interestReducer from '@/store/reducers/interest'
+import offersReducer from '@/store/reducers/offers'
+import { theme } from '@/theme'
 
-const reducer = { auth: authReducer }
+/** Reducer raiz do store de teste — sem o `persistReducer` que envolve `auth` no store real. */
+const rootReducer = combineReducers({ auth: authReducer, offers: offersReducer, interest: interestReducer })
 
-/** Shape do estado do store de teste — sem o `persistReducer` que envolve `auth` no store real. */
-interface TestState {
-  auth: AuthState
-}
+/** Shape do estado do store de teste, derivado do próprio `rootReducer`. */
+type TestState = ReturnType<typeof rootReducer>
 
 /**
  * Tipo de retorno via `ReturnType<typeof configureStore<...>>` (não `EnhancedStore<S>` de mão) —
@@ -20,13 +24,15 @@ interface TestState {
 type TestStore = ReturnType<typeof configureStore<TestState>>
 
 /** Store novo por teste, com os mesmos reducers do app (sem o wrapper de persistência). */
-function setupStore(preloadedState?: TestState): TestStore {
-  return configureStore({ reducer, preloadedState })
+function setupStore(preloadedState?: Partial<TestState>): TestStore {
+  return configureStore({ reducer: rootReducer, preloadedState })
 }
 
 /** Opções de `renderWithStore`. */
 interface RenderWithStoreOptions {
-  preloadedState?: TestState
+  preloadedState?: Partial<TestState>
+  /** Rota inicial do `MemoryRouter` que envolve o componente — default `/`. */
+  route?: string
 }
 
 /**
@@ -36,15 +42,29 @@ interface RenderWithStoreOptions {
  */
 type RenderWithStoreResult = ReturnType<typeof render> & { store: TestStore }
 
-/** `render()` do Testing Library já envolto num `Provider` com store isolado. */
+/**
+ * `render()` do Testing Library já envolto num `Provider` com store isolado, `MemoryRouter` (pra
+ * componentes que usam `useNavigate`/`Link`) e `AntApp` (pro contexto que `App.useApp()` consome —
+ * mesmo motivo de `App.tsx` real). Um `MemoryRouter` interno de um teste específico (ex.: pra montar
+ * rotas-alvo de navegação) continua funcionando aninhado a este — cada `<Routes>` resolve contra o
+ * Router ancestral mais próximo.
+ */
 export function renderWithStore(
   ui: ReactElement,
-  { preloadedState }: RenderWithStoreOptions = {}
+  { preloadedState, route = '/' }: RenderWithStoreOptions = {}
 ): RenderWithStoreResult {
   const store = setupStore(preloadedState)
 
   function Wrapper({ children }: Readonly<{ children: ReactNode }>): ReactNode {
-    return <Provider store={store}>{children}</Provider>
+    return (
+      <Provider store={store}>
+        <MemoryRouter initialEntries={[route]}>
+          <ThemeProvider theme={theme}>
+            <AntApp>{children}</AntApp>
+          </ThemeProvider>
+        </MemoryRouter>
+      </Provider>
+    )
   }
 
   /**
