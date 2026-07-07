@@ -13,7 +13,7 @@ import store from '@/store'
 import { loginThunk } from '@/store/reducers/auth/thunk'
 import { UserRole } from '@/store/reducers/auth/types'
 
-const STORAGE_KEY = 'persist:passarela_auth'
+const STORAGE_KEY = 'persist:passarela_auth_v2'
 
 describe('sincronização entre abas (store/index.ts)', () => {
   afterEach(() => {

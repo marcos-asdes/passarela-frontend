@@ -19,8 +19,13 @@ import { createEncryptor } from '@/utils/redux/persistEncryption'
  * transiente de formulário, não faz sentido sobreviver ao fechamento da aba. `login` já é
  * chaveado por papel (merchant/shopper), então as duas sessões persistem juntas nesse único slot.
  */
+/**
+ * `_v2`: `login` mudou de slot único pra `Record<UserRole, ...>` — sessões persistidas no formato
+ * antigo (`passarela_auth`) quebrariam o seletor novo ao reidratar. Trocar a key força quem tinha
+ * sessão salva a simplesmente logar de novo, em vez de reidratar um shape incompatível.
+ */
 const authPersistConfig: PersistConfig<AuthState> = {
-  key: 'passarela_auth',
+  key: 'passarela_auth_v2',
   storage,
   whitelist: ['login'],
   transforms: import.meta.env.DEV ? [] : [createEncryptor<AuthState>()]
