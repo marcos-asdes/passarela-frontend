@@ -74,6 +74,15 @@ syncAccessTokensFromState()
  * na que escreveu) e reidrata a branch `auth` manualmente via `getStoredState` (já reaplica os
  * mesmos transforms de des/criptografia que `persistReducer` usaria), despachando um `REHYDRATE` —
  * que `persistReducer` sabe mesclar a qualquer momento, não só no boot.
+ *
+ * **Guarda contra loop infinito entre abas**: `redux-persist-transform-encrypt` usa `crypto-js` com
+ * salt aleatório por chamada — o mesmo `login` em texto puro gera um ciphertext DIFERENTE a cada
+ * `persistReducer` regravar o storage, então o navegador nunca considera o valor "igual" e sempre
+ * dispara `storage` na outra aba, mesmo sem mudança real de sessão. Despachar `REHYDRATE` incondicional
+ * nesse evento faz duas abas reescreverem o storage uma em resposta à outra pra sempre (cada
+ * `REHYDRATE` muda a referência do state, o que já dispara nova persistência). Comparar o `login`
+ * já **descriptografado** (não o ciphertext bruto) contra o state atual antes de despachar quebra
+ * o ciclo: sem mudança real de conteúdo, não há novo dispatch, não há nova escrita, não há novo evento.
  */
 const AUTH_STORAGE_KEY = `persist:${authPersistConfig.key}`
 
@@ -81,7 +90,13 @@ window.addEventListener('storage', (event) => {
   if (event.key !== AUTH_STORAGE_KEY) return
 
   void getStoredState(authPersistConfig).then((restoredState) => {
-    if (restoredState) store.dispatch({ type: REHYDRATE, key: authPersistConfig.key, payload: restoredState })
+    if (!restoredState) return
+
+    const currentLogin = store.getState().auth.login
+    const restoredLogin = (restoredState as Partial<AuthState>).login
+    if (JSON.stringify(restoredLogin) === JSON.stringify(currentLogin)) return
+
+    store.dispatch({ type: REHYDRATE, key: authPersistConfig.key, payload: restoredState })
   })
 })
 
