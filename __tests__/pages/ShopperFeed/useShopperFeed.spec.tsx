@@ -22,6 +22,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useShopperFeed } from '@/pages/ShopperFeed/useShopperFeed'
 import { axiosApi } from '@/services/api/axiosApi'
 import { createOffersSocket } from '@/services/socket/offersSocket'
+import { UserRole } from '@/store/reducers/auth/types'
 import interestReducer from '@/store/reducers/interest'
 import offersReducer from '@/store/reducers/offers'
 import type { OffersState } from '@/store/reducers/offers/types'
@@ -95,7 +96,7 @@ describe('useShopperFeed', () => {
     renderUseShopperFeed(store)
 
     await waitFor(() => expect(axiosApi.get).toHaveBeenCalledWith('/offers', { params: { status: undefined } }))
-    await waitFor(() => expect(axiosApi.get).toHaveBeenCalledWith('/interest/mine'))
+    await waitFor(() => expect(axiosApi.get).toHaveBeenCalledWith('/interest/mine', { role: UserRole.Shopper }))
   })
 
   it('offer:created adiciona a offer recebida', async () => {
@@ -139,7 +140,7 @@ describe('useShopperFeed', () => {
 
     await result.current.handleRegisterInterest('offer-1')
 
-    expect(axiosApi.post).toHaveBeenCalledWith('/interest', { offerId: 'offer-1' })
+    expect(axiosApi.post).toHaveBeenCalledWith('/interest', { offerId: 'offer-1' }, { role: UserRole.Shopper })
   })
 
   it('handleRemoveInterest despacha removeInterestThunk', async () => {
@@ -150,7 +151,7 @@ describe('useShopperFeed', () => {
 
     await result.current.handleRemoveInterest('offer-1')
 
-    expect(axiosApi.delete).toHaveBeenCalledWith('/interest/offer-1')
+    expect(axiosApi.delete).toHaveBeenCalledWith('/interest/offer-1', { role: UserRole.Shopper })
   })
 
   it('handleToggleCartFilter alterna showOnlyInterests e reseta a página', async () => {

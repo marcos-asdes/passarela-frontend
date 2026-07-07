@@ -21,6 +21,7 @@ import {
   fetchPublicOffersThunk
 } from '@/store/reducers/offers/thunk'
 import { OfferStatus } from '@/store/reducers/offers/types'
+import { UserRole } from '@/store/reducers/auth/types'
 
 vi.mock('@/services/api/axiosApi', () => ({
   axiosApi: { get: vi.fn(), post: vi.fn() }
@@ -49,7 +50,7 @@ describe('offers thunks', () => {
 
     const action = await store.dispatch(fetchMyOffersThunk())
 
-    expect(axiosApi.get).toHaveBeenCalledWith('/offers/mine')
+    expect(axiosApi.get).toHaveBeenCalledWith('/offers/mine', { role: UserRole.Merchant })
     expect(fetchMyOffersThunk.fulfilled.match(action)).toBe(true)
   })
 
@@ -66,7 +67,7 @@ describe('offers thunks', () => {
 
     const action = await store.dispatch(createOfferThunk(payload))
 
-    expect(axiosApi.post).toHaveBeenCalledWith('/offers', payload)
+    expect(axiosApi.post).toHaveBeenCalledWith('/offers', payload, { role: UserRole.Merchant })
     expect(createOfferThunk.fulfilled.match(action) && action.payload).toEqual(offer)
   })
 
@@ -76,7 +77,7 @@ describe('offers thunks', () => {
 
     await store.dispatch(closeOfferThunk('offer-1'))
 
-    expect(axiosApi.post).toHaveBeenCalledWith('/offers/offer-1/close')
+    expect(axiosApi.post).toHaveBeenCalledWith('/offers/offer-1/close', undefined, { role: UserRole.Merchant })
   })
 
   it('fetchPublicOffersThunk repassa o status como query param', async () => {

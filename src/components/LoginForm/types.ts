@@ -8,17 +8,14 @@ export interface LoginFormValues {
 
 /** Props do formulário de login compartilhado por lojista e cliente. */
 export interface LoginFormProps {
-  /** Papel esperado nesta página — o backend não recebe role no login, então conferimos a resposta contra ele. */
+  /** Papel desta página — enviado no payload do login, backend só busca conta daquele papel. */
   role: UserRole
-  /** Rota de login do outro papel, usada quando a conta autenticada não bate com `role`. */
-  otherRoleLoginPath: string
 }
 
 /** Retorno de `useLoginForm`. */
 export interface UseLoginFormReturn {
   loading: boolean
   error: string | null
-  roleMismatch: boolean
   loggedIn: boolean
   handleSubmit: (values: LoginFormValues) => Promise<void>
 }

@@ -2,6 +2,7 @@ import axios from 'axios'
 
 import { axiosApi } from '@/services/api/axiosApi'
 import { API_INTEREST_ROUTES } from '@/services/apiRoutes/interest'
+import { UserRole } from '@/store/reducers/auth/types'
 import type { MyInterestItem, RegisterInterestResult } from '@/store/reducers/interest/types'
 import { createThunk } from '@/utils/redux/createThunk'
 
@@ -18,7 +19,11 @@ export const registerInterestThunk = createThunk<RegisterInterestResult, string>
   'interest/register',
   async (offerId) => {
     try {
-      const response = await axiosApi.post<{ id: string }>(API_INTEREST_ROUTES.post.register, { offerId })
+      const response = await axiosApi.post<{ id: string }>(
+        API_INTEREST_ROUTES.post.register,
+        { offerId },
+        { role: UserRole.Shopper }
+      )
       return { offerId, interestId: response.data.id }
     } catch (error) {
       throw new Error(mapRegisterInterestError(error), { cause: error })
@@ -29,7 +34,7 @@ export const registerInterestThunk = createThunk<RegisterInterestResult, string>
 /** Busca todos os interests do shopper autenticado — restaura estado no carregamento/F5 da página. */
 export const fetchMyInterestsThunk = createThunk<MyInterestItem[], void>('interest/fetchMine', async () => {
   try {
-    const response = await axiosApi.get<MyInterestItem[]>(API_INTEREST_ROUTES.get.mine)
+    const response = await axiosApi.get<MyInterestItem[]>(API_INTEREST_ROUTES.get.mine, { role: UserRole.Shopper })
     return response.data
   } catch (error) {
     throw new Error('Algo deu errado. Tente novamente.', { cause: error })
@@ -39,7 +44,7 @@ export const fetchMyInterestsThunk = createThunk<MyInterestItem[], void>('intere
 /** Shopper remove o próprio interest e devolve 1 unidade ao estoque. Retorna o offerId para atualização de estado. */
 export const removeInterestThunk = createThunk<string, string>('interest/remove', async (offerId) => {
   try {
-    await axiosApi.delete(API_INTEREST_ROUTES.delete.remove(offerId))
+    await axiosApi.delete(API_INTEREST_ROUTES.delete.remove(offerId), { role: UserRole.Shopper })
     return offerId
   } catch (error) {
     if (axios.isAxiosError(error) && error.response?.status === 404)

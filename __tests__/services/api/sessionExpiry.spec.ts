@@ -2,7 +2,7 @@
  * Testes unitários para o holder do handler de sessão expirada
  *
  * Cenários testados:
- * - triggerSessionExpired chama o handler registrado
+ * - triggerSessionExpired chama o handler registrado com o papel
  * - triggerSessionExpired não lança quando não há handler registrado
  * - setSessionExpiredHandler(null) remove o handler registrado
  */
@@ -10,23 +10,24 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { setSessionExpiredHandler, triggerSessionExpired } from '@/services/api/sessionExpiry'
+import { UserRole } from '@/store/reducers/auth/types'
 
 describe('sessionExpiry', () => {
   afterEach(() => {
     setSessionExpiredHandler(null)
   })
 
-  it('triggerSessionExpired chama o handler registrado', () => {
+  it('triggerSessionExpired chama o handler registrado com o papel', () => {
     const handler = vi.fn()
     setSessionExpiredHandler(handler)
 
-    triggerSessionExpired()
+    triggerSessionExpired(UserRole.Merchant)
 
-    expect(handler).toHaveBeenCalledTimes(1)
+    expect(handler).toHaveBeenCalledWith(UserRole.Merchant)
   })
 
   it('triggerSessionExpired não lança quando não há handler registrado', () => {
-    expect(() => triggerSessionExpired()).not.toThrow()
+    expect(() => triggerSessionExpired(UserRole.Shopper)).not.toThrow()
   })
 
   it('setSessionExpiredHandler(null) remove o handler registrado', () => {
@@ -34,7 +35,7 @@ describe('sessionExpiry', () => {
     setSessionExpiredHandler(handler)
     setSessionExpiredHandler(null)
 
-    triggerSessionExpired()
+    triggerSessionExpired(UserRole.Merchant)
 
     expect(handler).not.toHaveBeenCalled()
   })

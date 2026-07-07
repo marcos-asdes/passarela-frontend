@@ -15,27 +15,20 @@ const POST_LOGIN_PATH: Record<UserRole, string> = {
 }
 
 /**
- * Estado e submissão do login. Dispara `loginThunk`, confere se o papel devolvido pelo backend
- * bate com a persona da página (já que `POST /auth/login` não recebe role) e redireciona pro
- * dashboard/feed correspondente.
+ * Estado e submissão do login. Dispara `loginThunk` com o `role` da página (o backend só busca
+ * conta daquele papel), e redireciona pro dashboard/feed correspondente em caso de sucesso.
  */
 export function useLoginForm(role: UserRole): UseLoginFormReturn {
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
-  const loading = useAppSelector(selectLoginLoading)
-  const error = useAppSelector(selectLoginError)
-  const [roleMismatch, setRoleMismatch] = useState<boolean>(false)
+  const loading = useAppSelector(selectLoginLoading(role))
+  const error = useAppSelector(selectLoginError(role))
   const [loggedIn, setLoggedIn] = useState<boolean>(false)
 
   const handleSubmit = useCallback(
     async (values: LoginFormValues): Promise<void> => {
-      setRoleMismatch(false)
-      const result = await dispatch(loginThunk(values))
+      const result = await dispatch(loginThunk({ ...values, role }))
       if (loginThunk.fulfilled.match(result)) {
-        if (result.payload.user.role !== role) {
-          setRoleMismatch(true)
-          return
-        }
         setLoggedIn(true)
         navigate(POST_LOGIN_PATH[role])
       }
@@ -43,5 +36,5 @@ export function useLoginForm(role: UserRole): UseLoginFormReturn {
     [dispatch, navigate, role]
   )
 
-  return { loading, error, roleMismatch, loggedIn, handleSubmit }
+  return { loading, error, loggedIn, handleSubmit }
 }

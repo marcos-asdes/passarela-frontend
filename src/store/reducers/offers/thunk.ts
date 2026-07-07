@@ -2,6 +2,7 @@ import axios from 'axios'
 
 import { axiosApi } from '@/services/api/axiosApi'
 import { API_OFFERS_ROUTES } from '@/services/apiRoutes/offers'
+import { UserRole } from '@/store/reducers/auth/types'
 import type { CreateOfferPayload, IMerchantOffer, IOffer, OfferStatus } from '@/store/reducers/offers/types'
 import { createThunk } from '@/utils/redux/createThunk'
 
@@ -18,7 +19,7 @@ function mapOfferError(error: unknown): string {
 /** Dashboard do merchant: suas offers, cada uma com a contagem de interest. */
 export const fetchMyOffersThunk = createThunk<IMerchantOffer[], void>('offers/fetchMine', async () => {
   try {
-    const response = await axiosApi.get<IMerchantOffer[]>(API_OFFERS_ROUTES.get.mine)
+    const response = await axiosApi.get<IMerchantOffer[]>(API_OFFERS_ROUTES.get.mine, { role: UserRole.Merchant })
     return response.data
   } catch (error) {
     throw new Error(mapOfferError(error), { cause: error })
@@ -28,7 +29,7 @@ export const fetchMyOffersThunk = createThunk<IMerchantOffer[], void>('offers/fe
 /** Publica uma nova offer. */
 export const createOfferThunk = createThunk<IOffer, CreateOfferPayload>('offers/create', async (payload) => {
   try {
-    const response = await axiosApi.post<IOffer>(API_OFFERS_ROUTES.post.create, payload)
+    const response = await axiosApi.post<IOffer>(API_OFFERS_ROUTES.post.create, payload, { role: UserRole.Merchant })
     return response.data
   } catch (error) {
     throw new Error(mapOfferError(error), { cause: error })
@@ -38,7 +39,9 @@ export const createOfferThunk = createThunk<IOffer, CreateOfferPayload>('offers/
 /** Encerra manualmente uma offer própria. */
 export const closeOfferThunk = createThunk<IOffer, string>('offers/close', async (offerId) => {
   try {
-    const response = await axiosApi.post<IOffer>(API_OFFERS_ROUTES.post.close(offerId))
+    const response = await axiosApi.post<IOffer>(API_OFFERS_ROUTES.post.close(offerId), undefined, {
+      role: UserRole.Merchant
+    })
     return response.data
   } catch (error) {
     throw new Error(mapOfferError(error), { cause: error })

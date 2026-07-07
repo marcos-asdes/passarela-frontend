@@ -4,8 +4,8 @@ import { useNavigate } from 'react-router-dom'
 
 import { useAppDispatch } from '@/hooks/useAppDispatch'
 import { setSessionExpiredHandler } from '@/services/api/sessionExpiry'
-import { persistor } from '@/store'
 import { logout } from '@/store/reducers/auth/slice'
+import { UserRole } from '@/store/reducers/auth/types'
 
 /**
  * Componente sem renderização — registra o handler global acionado pelo interceptor de 401
@@ -18,23 +18,26 @@ export function SessionExpiredWatcher(): ReactNode {
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
   const { modal } = App.useApp()
-  const alreadyShownRef = useRef<boolean>(false)
+  const alreadyShownRef = useRef<Record<UserRole, boolean>>({
+    [UserRole.Merchant]: false,
+    [UserRole.Shopper]: false
+  })
 
   useEffect(() => {
-    setSessionExpiredHandler(() => {
-      // Várias requests podem 401 quase juntas (perfil, feed, interesses) — sem essa guarda cada
-      // uma abriria seu próprio modal, empilhando várias cópias na tela.
-      if (alreadyShownRef.current) return
-      alreadyShownRef.current = true
+    setSessionExpiredHandler((role) => {
+      // Várias requests do mesmo papel podem 401 quase juntas (perfil, feed, interesses) — sem essa
+      // guarda cada uma abriria seu próprio modal, empilhando várias cópias na tela. Guardado por
+      // papel: o outro papel pode expirar em separado sem ser suprimido por essa checagem.
+      if (alreadyShownRef.current[role]) return
+      alreadyShownRef.current[role] = true
 
       modal.info({
         title: 'Sessão expirada',
         content: 'Sua sessão expirou por inatividade. Faça login novamente.',
         okText: 'OK',
         onOk: () => {
-          alreadyShownRef.current = false
-          dispatch(logout())
-          persistor.purge()
+          alreadyShownRef.current[role] = false
+          dispatch(logout(role))
           navigate('/')
         }
       })

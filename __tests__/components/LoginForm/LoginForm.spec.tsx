@@ -2,8 +2,7 @@
  * Testes unitários para LoginForm (integra useLoginForm)
  *
  * Cenários testados:
- * - login com sucesso e papel correto: navega pro dashboard/feed do papel
- * - login com papel incorreto: mostra alerta com link pro login correto
+ * - login com sucesso: navega pro dashboard/feed do papel da página
  * - login com credenciais inválidas: mostra alerta de erro
  * - loggedIn true (hook mockado): mostra o alerta de sucesso em vez do formulário
  */
@@ -25,9 +24,8 @@ vi.mock('@/services/api/axiosApi', () => ({
 function renderLoginForm() {
   return renderWithStore(
     <Routes>
-      <Route path="/" element={<LoginForm role={UserRole.Merchant} otherRoleLoginPath="/cliente/entrar" />} />
+      <Route path="/" element={<LoginForm role={UserRole.Merchant} />} />
       <Route path="/lojista/painel" element={<div>painel do lojista</div>} />
-      <Route path="/cliente/entrar" element={<div>login do cliente</div>} />
     </Routes>
   )
 }
@@ -43,7 +41,7 @@ describe('LoginForm', () => {
     vi.mocked(axiosApi.post).mockReset()
   })
 
-  it('login com sucesso e papel correto navega pro painel', async () => {
+  it('login com sucesso navega pro painel', async () => {
     vi.mocked(axiosApi.post).mockResolvedValue({
       data: { accessToken: 'token-123', user: { id: 'user-1', role: UserRole.Merchant } }
     })
@@ -52,18 +50,11 @@ describe('LoginForm', () => {
     await submitForm(screen)
 
     expect(await screen.findByText('painel do lojista')).toBeInTheDocument()
-  })
-
-  it('login com papel incorreto mostra alerta com link pro login correto', async () => {
-    vi.mocked(axiosApi.post).mockResolvedValue({
-      data: { accessToken: 'token-123', user: { id: 'user-1', role: UserRole.Shopper } }
+    expect(axiosApi.post).toHaveBeenCalledWith('/auth/login', {
+      email: 'lojista@teste.com',
+      password: 'SenhaForte123!',
+      role: UserRole.Merchant
     })
-    const screen = renderLoginForm()
-
-    await submitForm(screen)
-
-    expect(await screen.findByText('Login incorreto')).toBeInTheDocument()
-    expect(await screen.findByText('Ir para o login correto')).toHaveAttribute('href', '/cliente/entrar')
   })
 
   it('login com credenciais inválidas mostra alerta de erro', async () => {
@@ -79,14 +70,11 @@ describe('LoginForm', () => {
     const spy = vi.spyOn(useLoginFormModule, 'useLoginForm').mockReturnValue({
       loading: false,
       error: null,
-      roleMismatch: false,
       loggedIn: true,
       handleSubmit: vi.fn()
     })
 
-    const { getByText, queryByLabelText } = renderWithStore(
-      <LoginForm role={UserRole.Merchant} otherRoleLoginPath="/cliente/entrar" />
-    )
+    const { getByText, queryByLabelText } = renderWithStore(<LoginForm role={UserRole.Merchant} />)
 
     expect(getByText('Login realizado com sucesso')).toBeInTheDocument()
     expect(queryByLabelText('E-mail')).not.toBeInTheDocument()

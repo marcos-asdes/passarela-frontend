@@ -36,15 +36,20 @@ vi.mock('@/services/socket/merchantSocket', () => ({
 }))
 
 function buildStore(loggedIn: boolean) {
+  const emptyLoginSession = { loading: false, error: null, accessToken: null, user: null }
+  const emptyProfileSession = { loading: false, error: null, name: null, email: null }
   const authState: AuthState = {
     register: { loading: false, error: null, success: false },
     login: {
-      loading: false,
-      error: null,
-      accessToken: loggedIn ? 'token-123' : null,
-      user: loggedIn ? { id: 'merchant-1', role: UserRole.Merchant } : null
+      [UserRole.Merchant]: {
+        loading: false,
+        error: null,
+        accessToken: loggedIn ? 'token-123' : null,
+        user: loggedIn ? { id: 'merchant-1', role: UserRole.Merchant } : null
+      },
+      [UserRole.Shopper]: emptyLoginSession
     },
-    profile: { loading: false, error: null, name: null, email: null }
+    profile: { [UserRole.Merchant]: emptyProfileSession, [UserRole.Shopper]: emptyProfileSession }
   }
   const rootReducer = combineReducers({ auth: authReducer, offers: offersReducer })
   return configureStore({ reducer: rootReducer, preloadedState: { auth: authState } })
@@ -74,7 +79,7 @@ describe('useMerchantDashboard', () => {
 
     renderUseMerchantDashboard(store)
 
-    await waitFor(() => expect(axiosApi.get).toHaveBeenCalledWith('/offers/mine'))
+    await waitFor(() => expect(axiosApi.get).toHaveBeenCalledWith('/offers/mine', { role: UserRole.Merchant }))
   })
 
   it('sem merchant autenticado, não conecta o socket', async () => {
@@ -138,7 +143,7 @@ describe('useMerchantDashboard', () => {
 
     await result.current.handleClose('offer-1')
 
-    expect(axiosApi.post).toHaveBeenCalledWith('/offers/offer-1/close')
+    expect(axiosApi.post).toHaveBeenCalledWith('/offers/offer-1/close', undefined, { role: UserRole.Merchant })
   })
 
   it('handleCreateSubmit fecha o modal em caso de sucesso', async () => {

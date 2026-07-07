@@ -5,6 +5,7 @@ import { AppHeader } from '@/components/AppHeader'
 import { Button } from '@/components/Button'
 import * as S from '@/pages/ShopperFeed/styles'
 import { useShopperFeed } from '@/pages/ShopperFeed/useShopperFeed'
+import { UserRole } from '@/store/reducers/auth/types'
 import { OfferStatus } from '@/store/reducers/offers/types'
 
 /** Feed do shopper: offers ativas paginadas, com registro/remoção de interest em tempo real. */
@@ -131,6 +132,7 @@ function ShopperFeed(): ReactNode {
   return (
     <S.PageWrapper>
       <AppHeader
+        role={UserRole.Shopper}
         onLogoClick={handleSoftReload}
         onCartClick={handleToggleCartFilter}
         cartFilterActive={showOnlyInterests}

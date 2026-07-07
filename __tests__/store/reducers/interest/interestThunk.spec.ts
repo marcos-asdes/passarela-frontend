@@ -18,6 +18,7 @@ import { describe, expect, it, vi } from 'vitest'
 
 import { axiosApi } from '@/services/api/axiosApi'
 import type { RootState } from '@/store'
+import { UserRole } from '@/store/reducers/auth/types'
 import interestReducer, { selectRegisteredInterests } from '@/store/reducers/interest/slice'
 import { fetchMyInterestsThunk, registerInterestThunk, removeInterestThunk } from '@/store/reducers/interest/thunk'
 
@@ -36,7 +37,7 @@ describe('interest thunk/reducer', () => {
 
     const action = await store.dispatch(registerInterestThunk('offer-1'))
 
-    expect(axiosApi.post).toHaveBeenCalledWith('/interest', { offerId: 'offer-1' })
+    expect(axiosApi.post).toHaveBeenCalledWith('/interest', { offerId: 'offer-1' }, { role: UserRole.Shopper })
     expect(registerInterestThunk.fulfilled.match(action) && action.payload).toEqual({
       offerId: 'offer-1',
       interestId: 'interest-1'
@@ -79,7 +80,7 @@ describe('interest thunk/reducer', () => {
 
     const action = await store.dispatch(fetchMyInterestsThunk())
 
-    expect(axiosApi.get).toHaveBeenCalledWith('/interest/mine')
+    expect(axiosApi.get).toHaveBeenCalledWith('/interest/mine', { role: UserRole.Shopper })
     expect(fetchMyInterestsThunk.fulfilled.match(action) && action.payload).toEqual([
       { id: 'interest-1', offerId: 'offer-1' }
     ])
@@ -101,7 +102,7 @@ describe('interest thunk/reducer', () => {
 
     const action = await store.dispatch(removeInterestThunk('offer-1'))
 
-    expect(axiosApi.delete).toHaveBeenCalledWith('/interest/offer-1')
+    expect(axiosApi.delete).toHaveBeenCalledWith('/interest/offer-1', { role: UserRole.Shopper })
     expect(removeInterestThunk.fulfilled.match(action) && action.payload).toBe('offer-1')
   })
 

@@ -15,6 +15,7 @@ import { describe, expect, it } from 'vitest'
 import { useAppDispatch } from '@/hooks/useAppDispatch'
 import { useAppSelector } from '@/hooks/useAppSelector'
 import authReducer, { selectLoginUser } from '@/store/reducers/auth/slice'
+import { UserRole } from '@/store/reducers/auth/types'
 
 function buildStore() {
   return configureStore({ reducer: { auth: authReducer } })
@@ -34,7 +35,7 @@ describe('useAppDispatch', () => {
 
 describe('useAppSelector', () => {
   it('lê o state do store', () => {
-    const { result } = renderHook(() => useAppSelector(selectLoginUser), { wrapper: Wrapper })
+    const { result } = renderHook(() => useAppSelector(selectLoginUser(UserRole.Shopper)), { wrapper: Wrapper })
 
     expect(result.current).toBeNull()
   })

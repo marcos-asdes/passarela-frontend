@@ -5,7 +5,7 @@ import { AuthCard } from '@/components/AuthCard'
 import { LoginForm } from '@/components/LoginForm'
 import { UserRole } from '@/store/reducers/auth/types'
 
-/** Login do lojista — mesmo endpoint de login do cliente, papel conferido após a resposta do backend. */
+/** Login do lojista — mesmo endpoint de login do cliente, escopado pelo papel enviado no payload. */
 function MerchantLogin(): ReactNode {
   return (
     <AuthCard
@@ -17,7 +17,7 @@ function MerchantLogin(): ReactNode {
         </>
       }
     >
-      <LoginForm role={UserRole.Merchant} otherRoleLoginPath="/cliente/entrar" />
+      <LoginForm role={UserRole.Merchant} />
     </AuthCard>
   )
 }

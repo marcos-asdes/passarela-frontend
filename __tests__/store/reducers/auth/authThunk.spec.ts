@@ -87,7 +87,7 @@ describe('auth thunks', () => {
   })
 
   describe('loginThunk', () => {
-    const loginPayload = { email: 'maria@teste.com', password: 'SenhaForte123!' }
+    const loginPayload = { email: 'maria@teste.com', password: 'SenhaForte123!', role: UserRole.Shopper }
 
     it('envia o payload pro endpoint de login e retorna accessToken + user', async () => {
       const data = { accessToken: 'token-123', user: { id: 'user-1', role: UserRole.Shopper } }
@@ -123,13 +123,13 @@ describe('auth thunks', () => {
   })
 
   describe('fetchProfileThunk', () => {
-    it('busca o perfil autenticado', async () => {
+    it('busca o perfil autenticado do papel, anexando o role no config da request', async () => {
       vi.mocked(axiosApi.get).mockResolvedValue({ data: { name: 'Maria', email: 'maria@teste.com' } })
       const store = buildStore()
 
-      const action = await store.dispatch(fetchProfileThunk())
+      const action = await store.dispatch(fetchProfileThunk(UserRole.Shopper))
 
-      expect(axiosApi.get).toHaveBeenCalledWith('/auth/me')
+      expect(axiosApi.get).toHaveBeenCalledWith('/auth/me', { role: UserRole.Shopper })
       expect(fetchProfileThunk.fulfilled.match(action) && action.payload).toEqual({
         name: 'Maria',
         email: 'maria@teste.com'
@@ -138,13 +138,13 @@ describe('auth thunks', () => {
   })
 
   describe('logoutThunk', () => {
-    it('chama o endpoint de logout', async () => {
+    it('chama o endpoint de logout anexando o role do papel no config da request', async () => {
       vi.mocked(axiosApi.post).mockResolvedValue({ data: undefined })
       const store = buildStore()
 
-      await store.dispatch(logoutThunk())
+      await store.dispatch(logoutThunk(UserRole.Merchant))
 
-      expect(axiosApi.post).toHaveBeenCalledWith('/auth/logout')
+      expect(axiosApi.post).toHaveBeenCalledWith('/auth/logout', undefined, { role: UserRole.Merchant })
     })
   })
 })

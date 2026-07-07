@@ -9,8 +9,8 @@ import { Button } from '@/components/Button'
 import { UserRole } from '@/store/reducers/auth/types'
 
 /** Header fixo com ocultação suave ao rolar para baixo e reaparecimento ao rolar para cima. */
-export function AppHeader({ onLogoClick, onCartClick, cartFilterActive }: Readonly<AppHeaderProps>): ReactNode {
-  const { visible, name, email, role, cartCount, handleLogout } = useAppHeader()
+export function AppHeader({ role, onLogoClick, onCartClick, cartFilterActive }: Readonly<AppHeaderProps>): ReactNode {
+  const { visible, name, email, cartCount, handleLogout } = useAppHeader(role)
 
   const interestSuffix = cartCount === 1 ? '' : 's'
   const cartTooltip = cartFilterActive

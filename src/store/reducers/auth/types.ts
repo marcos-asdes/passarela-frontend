@@ -23,10 +23,11 @@ export interface RegisterResponse {
   message: string
 }
 
-/** Corpo de `POST /auth/login`. */
+/** Corpo de `POST /auth/login` — role obrigatório: um mesmo e-mail pode ter conta merchant e conta shopper. */
 export interface LoginPayload {
   email: string
   password: string
+  role: UserRole
 }
 
 /** Usuário autenticado devolvido pelo login — mesmo recorte do backend (id + role, nunca dado pessoal). */
@@ -47,23 +48,33 @@ export interface ProfileResponse {
   email: string
 }
 
-/** Estado do reducer `auth`: `register`, `login` e `profile` tratados de forma independente. */
+/** Sessão de login de um papel — merchant e shopper guardam a sua própria, nunca se sobrescrevem. */
+export interface LoginSessionState {
+  loading: boolean
+  error: string | null
+  accessToken: string | null
+  user: AuthUser | null
+}
+
+/** Perfil (nome/e-mail) de um papel — mesmo motivo de `LoginSessionState`, um por role. */
+export interface ProfileSessionState {
+  loading: boolean
+  error: string | null
+  name: string | null
+  email: string | null
+}
+
+/**
+ * Estado do reducer `auth`: `register` é transiente de formulário (não precisa coexistir por
+ * papel); `login`/`profile` são chaveados por `UserRole` — merchant e shopper podem estar
+ * autenticados ao mesmo tempo, cada um com seu próprio token/perfil.
+ */
 export interface AuthState {
   register: {
     loading: boolean
     error: string | null
     success: boolean
   }
-  login: {
-    loading: boolean
-    error: string | null
-    accessToken: string | null
-    user: AuthUser | null
-  }
-  profile: {
-    loading: boolean
-    error: string | null
-    name: string | null
-    email: string | null
-  }
+  login: Record<UserRole, LoginSessionState>
+  profile: Record<UserRole, ProfileSessionState>
 }

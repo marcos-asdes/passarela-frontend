@@ -7,7 +7,8 @@ import type {
   LoginResponse,
   ProfileResponse,
   RegisterPayload,
-  RegisterResponse
+  RegisterResponse,
+  UserRole
 } from '@/store/reducers/auth/types'
 import { createThunk } from '@/utils/redux/createThunk'
 
@@ -52,13 +53,13 @@ export const loginThunk = createThunk<LoginResponse, LoginPayload>('auth/login',
   }
 })
 
-/** Busca nome/e-mail do usuário autenticado — endpoint dedicado, nunca vem junto da resposta de login. */
-export const fetchProfileThunk = createThunk<ProfileResponse, void>('auth/fetchProfile', async () => {
-  const response = await axiosApi.get<ProfileResponse>(API_AUTH_ROUTES.get.me)
+/** Busca nome/e-mail do usuário autenticado no papel — endpoint dedicado, nunca vem junto da resposta de login. */
+export const fetchProfileThunk = createThunk<ProfileResponse, UserRole>('auth/fetchProfile', async (role) => {
+  const response = await axiosApi.get<ProfileResponse>(API_AUTH_ROUTES.get.me, { role })
   return response.data
 })
 
-/** Revoga a sessão atual no backend — best-effort: quem chama limpa o estado local independente do resultado. */
-export const logoutThunk = createThunk<void, void>('auth/logout', async () => {
-  await axiosApi.post(API_AUTH_ROUTES.post.logout)
+/** Revoga a sessão do papel no backend — best-effort: quem chama limpa o estado local independente do resultado. */
+export const logoutThunk = createThunk<void, UserRole>('auth/logout', async (role) => {
+  await axiosApi.post(API_AUTH_ROUTES.post.logout, undefined, { role })
 })

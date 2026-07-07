@@ -3,7 +3,7 @@
  *
  * Cenários testados:
  * - mostra "..." como nome enquanto o perfil não chegou, e-mail só aparece quando presente
- * - carrinho só aparece pro papel shopper
+ * - carrinho só aparece pro papel shopper (via prop role)
  * - clique em "Sair" chama handleLogout
  * - clique no logo chama onLogoClick
  */
@@ -17,14 +17,11 @@ import * as useAppHeaderModule from '@/components/AppHeader/useAppHeader'
 import { UserRole } from '@/store/reducers/auth/types'
 import { renderWithStore } from '@test-utils'
 
-function mockUseAppHeader(
-  overrides: Partial<ReturnType<typeof useAppHeaderModule.useAppHeader>> = {}
-): Mock<() => UseAppHeaderReturn> {
+function mockUseAppHeader(overrides: Partial<UseAppHeaderReturn> = {}): Mock<(role: UserRole) => UseAppHeaderReturn> {
   return vi.spyOn(useAppHeaderModule, 'useAppHeader').mockReturnValue({
     visible: true,
     name: null,
     email: null,
-    role: null,
     cartCount: 0,
     handleLogout: vi.fn(),
     ...overrides
@@ -35,7 +32,7 @@ describe('AppHeader', () => {
   it('mostra "..." como nome enquanto o perfil não chegou, e-mail só aparece quando presente', () => {
     const spy = mockUseAppHeader()
 
-    const { getByText, queryByText } = renderWithStore(<AppHeader />)
+    const { getByText, queryByText } = renderWithStore(<AppHeader role={UserRole.Shopper} />)
 
     expect(getByText('Olá, ...')).toBeInTheDocument()
     expect(queryByText('maria@teste.com')).not.toBeInTheDocument()
@@ -46,7 +43,7 @@ describe('AppHeader', () => {
   it('mostra nome e e-mail quando disponíveis', () => {
     const spy = mockUseAppHeader({ name: 'Maria', email: 'maria@teste.com' })
 
-    const { getByText } = renderWithStore(<AppHeader />)
+    const { getByText } = renderWithStore(<AppHeader role={UserRole.Shopper} />)
 
     expect(getByText('Olá, Maria')).toBeInTheDocument()
     expect(getByText('maria@teste.com')).toBeInTheDocument()
@@ -55,20 +52,12 @@ describe('AppHeader', () => {
   })
 
   it('carrinho só aparece pro papel shopper', () => {
-    const spy = mockUseAppHeader({ role: UserRole.Merchant })
+    const spy = mockUseAppHeader()
 
-    const { queryByLabelText, rerender } = renderWithStore(<AppHeader />)
+    const { queryByLabelText, rerender } = renderWithStore(<AppHeader role={UserRole.Merchant} />)
     expect(queryByLabelText('Interesses registrados')).not.toBeInTheDocument()
 
-    spy.mockReturnValue({
-      visible: true,
-      name: null,
-      email: null,
-      role: UserRole.Shopper,
-      cartCount: 2,
-      handleLogout: vi.fn()
-    })
-    rerender(<AppHeader />)
+    rerender(<AppHeader role={UserRole.Shopper} />)
 
     expect(queryByLabelText('Interesses registrados')).toBeInTheDocument()
 
@@ -79,7 +68,7 @@ describe('AppHeader', () => {
     const handleLogout = vi.fn()
     const spy = mockUseAppHeader({ handleLogout })
 
-    const { getByText } = renderWithStore(<AppHeader />)
+    const { getByText } = renderWithStore(<AppHeader role={UserRole.Shopper} />)
     await userEvent.click(getByText('Sair'))
 
     expect(handleLogout).toHaveBeenCalledTimes(1)
@@ -91,7 +80,7 @@ describe('AppHeader', () => {
     const spy = mockUseAppHeader()
     const onLogoClick = vi.fn()
 
-    const { getByText } = renderWithStore(<AppHeader onLogoClick={onLogoClick} />)
+    const { getByText } = renderWithStore(<AppHeader role={UserRole.Shopper} onLogoClick={onLogoClick} />)
     await userEvent.click(getByText('Passarela'))
 
     expect(onLogoClick).toHaveBeenCalledTimes(1)

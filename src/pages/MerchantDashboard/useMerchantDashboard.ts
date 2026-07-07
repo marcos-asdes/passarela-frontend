@@ -6,6 +6,7 @@ import { useAppSelector } from '@/hooks/useAppSelector'
 import type { CreateOfferFormValues, UseMerchantDashboardReturn } from '@/pages/MerchantDashboard/types'
 import { createMerchantSocket } from '@/services/socket/merchantSocket'
 import { selectLoginUser } from '@/store/reducers/auth/slice'
+import { UserRole } from '@/store/reducers/auth/types'
 import {
   selectCloseOfferLoading,
   selectCreateOfferError,
@@ -28,7 +29,7 @@ export function isPastDate(date: Dayjs): boolean {
  */
 export function useMerchantDashboard(): UseMerchantDashboardReturn {
   const dispatch = useAppDispatch()
-  const merchant = useAppSelector(selectLoginUser)
+  const merchant = useAppSelector(selectLoginUser(UserRole.Merchant))
   const loading = useAppSelector(selectMyOffersLoading)
   const error = useAppSelector(selectMyOffersError)
   const offers = useAppSelector(selectMyOffers)

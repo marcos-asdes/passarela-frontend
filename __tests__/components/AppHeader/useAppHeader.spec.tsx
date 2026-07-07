@@ -2,11 +2,11 @@
  * Testes unitários para useAppHeader
  *
  * Cenários testados:
- * - busca o perfil (fetchProfileThunk) quando ainda não tem nome
+ * - busca o perfil (fetchProfileThunk) do papel quando ainda não tem nome
  * - não refaz a busca depois de uma falha (guarda profileError contra retry infinito)
  * - cartCount reflete a quantidade de interests registrados
- * - role vem do usuário autenticado, null quando não logado
- * - handleLogout: revoga a sessão, limpa o estado local, purga o persist e navega pra "/"
+ * - lê nome/e-mail do papel certo, sem se misturar com o perfil do outro papel
+ * - handleLogout: revoga a sessão do papel, limpa o estado local daquele papel e navega pra "/"
  * - handleLogout: mesmo com logoutThunk falhando, limpa o estado local (best-effort)
  * - visible vira false ao rolar pra baixo além do threshold, volta true ao rolar pra cima
  */
@@ -20,18 +20,12 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { useAppHeader } from '@/components/AppHeader/useAppHeader'
 import { axiosApi } from '@/services/api/axiosApi'
-import authReducer from '@/store/reducers/auth'
+import authReducer, { initialState as authInitialState } from '@/store/reducers/auth/slice'
 import { UserRole } from '@/store/reducers/auth/types'
 import interestReducer from '@/store/reducers/interest'
 
-const purgeMock = vi.fn()
-
 vi.mock('@/services/api/axiosApi', () => ({
   axiosApi: { get: vi.fn(), post: vi.fn() }
-}))
-
-vi.mock('@/store', () => ({
-  persistor: { purge: (): unknown => purgeMock() }
 }))
 
 const rootReducer = combineReducers({ auth: authReducer, interest: interestReducer })
@@ -40,7 +34,7 @@ function buildStore(preloadedState?: Partial<ReturnType<typeof rootReducer>>) {
   return configureStore({ reducer: rootReducer, preloadedState })
 }
 
-function renderUseAppHeader(store: ReturnType<typeof buildStore>) {
+function renderUseAppHeader(store: ReturnType<typeof buildStore>, role: UserRole = UserRole.Shopper) {
   function Wrapper({ children }: Readonly<{ children: ReactNode }>): ReactNode {
     return (
       <Provider store={store}>
@@ -48,23 +42,22 @@ function renderUseAppHeader(store: ReturnType<typeof buildStore>) {
       </Provider>
     )
   }
-  return renderHook(() => useAppHeader(), { wrapper: Wrapper })
+  return renderHook(() => useAppHeader(role), { wrapper: Wrapper })
 }
 
 describe('useAppHeader', () => {
   beforeEach(() => {
     vi.mocked(axiosApi.get).mockReset()
     vi.mocked(axiosApi.post).mockReset()
-    purgeMock.mockReset()
   })
 
-  it('busca o perfil quando ainda não tem nome', async () => {
+  it('busca o perfil do papel quando ainda não tem nome', async () => {
     vi.mocked(axiosApi.get).mockResolvedValue({ data: { name: 'Maria', email: 'maria@teste.com' } })
     const store = buildStore()
 
-    renderUseAppHeader(store)
+    renderUseAppHeader(store, UserRole.Shopper)
 
-    await waitFor(() => expect(axiosApi.get).toHaveBeenCalledWith('/auth/me'))
+    await waitFor(() => expect(axiosApi.get).toHaveBeenCalledWith('/auth/me', { role: UserRole.Shopper }))
   })
 
   it('não refaz a busca depois de uma falha', async () => {
@@ -91,44 +84,57 @@ describe('useAppHeader', () => {
     expect(result.current.cartCount).toBe(2)
   })
 
-  it('role vem do usuário autenticado, null quando não logado', () => {
-    vi.mocked(axiosApi.get).mockResolvedValue({ data: { name: 'Maria', email: 'maria@teste.com' } })
+  it('lê nome/e-mail do papel certo, sem se misturar com o perfil do outro papel', () => {
     const store = buildStore({
       auth: {
-        register: { loading: false, error: null, success: false },
-        login: { loading: false, error: null, accessToken: 'token', user: { id: 'user-1', role: UserRole.Shopper } },
-        profile: { loading: false, error: null, name: null, email: null }
+        ...authInitialState,
+        profile: {
+          [UserRole.Merchant]: { loading: false, error: null, name: 'João', email: 'joao@teste.com' },
+          [UserRole.Shopper]: { loading: false, error: null, name: 'Maria', email: 'maria@teste.com' }
+        }
       }
     })
 
-    const { result } = renderUseAppHeader(store)
+    const { result } = renderUseAppHeader(store, UserRole.Shopper)
 
-    expect(result.current.role).toBe(UserRole.Shopper)
+    expect(result.current.name).toBe('Maria')
+    expect(result.current.email).toBe('maria@teste.com')
   })
 
-  it('handleLogout revoga a sessão, limpa o estado, purga o persist e navega', async () => {
+  it('handleLogout revoga a sessão do papel, limpa o estado local e navega', async () => {
     vi.mocked(axiosApi.get).mockResolvedValue({ data: { name: 'Maria', email: 'maria@teste.com' } })
     vi.mocked(axiosApi.post).mockResolvedValue({ data: undefined })
-    const store = buildStore()
-    const { result } = renderUseAppHeader(store)
+    const store = buildStore({
+      auth: {
+        ...authInitialState,
+        login: {
+          ...authInitialState.login,
+          [UserRole.Shopper]: {
+            loading: false,
+            error: null,
+            accessToken: 'token',
+            user: { id: 'user-1', role: UserRole.Shopper }
+          }
+        }
+      }
+    })
+    const { result } = renderUseAppHeader(store, UserRole.Shopper)
 
     await result.current.handleLogout()
 
-    expect(axiosApi.post).toHaveBeenCalledWith('/auth/logout')
-    expect(purgeMock).toHaveBeenCalledTimes(1)
-    expect(store.getState().auth.login.accessToken).toBeNull()
+    expect(axiosApi.post).toHaveBeenCalledWith('/auth/logout', undefined, { role: UserRole.Shopper })
+    expect(store.getState().auth.login[UserRole.Shopper].accessToken).toBeNull()
   })
 
   it('handleLogout limpa o estado local mesmo com logoutThunk falhando', async () => {
     vi.mocked(axiosApi.get).mockResolvedValue({ data: { name: 'Maria', email: 'maria@teste.com' } })
     vi.mocked(axiosApi.post).mockRejectedValue(new Error('sessão já expirada'))
     const store = buildStore()
-    const { result } = renderUseAppHeader(store)
+    const { result } = renderUseAppHeader(store, UserRole.Shopper)
 
     await result.current.handleLogout()
 
-    expect(purgeMock).toHaveBeenCalledTimes(1)
-    expect(store.getState().auth.login.accessToken).toBeNull()
+    expect(store.getState().auth.login[UserRole.Shopper].accessToken).toBeNull()
   })
 
   it('visible vira false ao rolar pra baixo além do threshold, volta true ao rolar pra cima', () => {

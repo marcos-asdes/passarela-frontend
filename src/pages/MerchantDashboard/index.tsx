@@ -5,6 +5,7 @@ import { AppHeader } from '@/components/AppHeader'
 import { Button } from '@/components/Button'
 import type { CreateOfferFormValues } from '@/pages/MerchantDashboard/types'
 import { isPastDate, useMerchantDashboard } from '@/pages/MerchantDashboard/useMerchantDashboard'
+import { UserRole } from '@/store/reducers/auth/types'
 import { OfferStatus, type IMerchantOffer } from '@/store/reducers/offers/types'
 
 const STATUS_LABEL: Record<OfferStatus, string> = {
@@ -33,7 +34,7 @@ function MerchantDashboard(): ReactNode {
 
   return (
     <>
-      <AppHeader onLogoClick={handleSoftReload} />
+      <AppHeader role={UserRole.Merchant} onLogoClick={handleSoftReload} />
       <div style={{ maxWidth: 960, margin: '0 auto', padding: 24, paddingTop: 88 }}>
         <Typography.Title level={2}>Minhas ofertas</Typography.Title>
         {error && <Alert type="error" showIcon title={error} style={{ marginBottom: 16 }} />}
