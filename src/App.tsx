@@ -3,17 +3,20 @@ import { App as AntApp, ConfigProvider } from 'antd'
 import ptBR from 'antd/locale/pt_BR'
 import dayjs from 'dayjs'
 import 'dayjs/locale/pt-br'
+import customParseFormat from 'dayjs/plugin/customParseFormat'
 import { Provider } from 'react-redux'
 import { BrowserRouter } from 'react-router-dom'
 import { PersistGate } from 'redux-persist/integration/react'
 import { ThemeProvider } from 'styled-components'
 
+import { antdTheme } from '@/antdTheme'
 import { LoadingFallback } from '@/components/LoadingFallback'
 import { SessionExpiredWatcher } from '@/components/SessionExpiredWatcher'
 import { Routes } from '@/routes/Routes'
 import store, { persistor } from '@/store'
 import { theme } from '@/theme'
 
+dayjs.extend(customParseFormat)
 dayjs.locale('pt-br')
 
 /**
@@ -24,25 +27,7 @@ function App(): ReactNode {
   return (
     <BrowserRouter>
       <Provider store={store}>
-        <ConfigProvider
-          locale={ptBR}
-          theme={{
-            token: {
-              colorPrimary: theme.colors.primary,
-              colorText: theme.colors.text,
-              colorTextSecondary: theme.colors.textSecondary,
-              colorBorder: theme.colors.border,
-              colorBgLayout: theme.colors.background,
-              fontFamily: theme.font.family,
-              borderRadius: theme.radius.input
-            },
-            components: {
-              Button: { borderRadius: theme.radius.button, controlHeight: 44, fontWeight: theme.font.weightMedium },
-              Input: { borderRadius: theme.radius.input, controlHeight: 44 },
-              Card: { borderRadiusLG: theme.radius.card }
-            }
-          }}
-        >
+        <ConfigProvider locale={ptBR} theme={antdTheme}>
           <ThemeProvider theme={theme}>
             <AntApp>
               <SessionExpiredWatcher />

@@ -1,4 +1,5 @@
 import { useCallback } from 'react'
+import dayjs from 'dayjs'
 
 import type { RegisterFormProps, RegisterFormValues, UseRegisterFormReturn } from '@/components/RegisterForm/types'
 import { useAppDispatch } from '@/hooks/useAppDispatch'
@@ -21,7 +22,7 @@ export function useRegisterForm({ role, onSuccess }: Readonly<RegisterFormProps>
           email: values.email,
           cpf: onlyDigits(values.cpf),
           phone: onlyDigits(values.phone),
-          birthDate: values.birthDate.toDate(),
+          birthDate: dayjs(values.birthDate, 'DD/MM/YYYY', true).toDate(),
           password: values.password,
           confirmPassword: values.confirmPassword,
           role

@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { Alert, DatePicker, Form } from 'antd'
+import { Alert, Form } from 'antd'
 import dayjs from 'dayjs'
 
 import { Button } from '@/components/Button'
@@ -7,7 +7,7 @@ import { PasswordInput, TextInput } from '@/components/Input'
 import type { RegisterFormProps } from '@/components/RegisterForm/types'
 import { useRegisterForm } from '@/components/RegisterForm/useRegisterForm'
 import { isValidCPF } from '@/utils/cpf'
-import { formatCPF, formatPhone, onlyDigits } from '@/utils/formatters'
+import { formatBirthDate, formatCPF, formatPhone, onlyDigits } from '@/utils/formatters'
 
 /** Mesma composição exigida pelo backend (auth/interface/register.dto.ts). */
 const PASSWORD_COMPOSITION_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).+$/
@@ -81,9 +81,20 @@ export function RegisterForm(props: Readonly<RegisterFormProps>): ReactNode {
       <Form.Item
         name="birthDate"
         label="Data de nascimento"
-        rules={[{ required: true, message: 'Data de nascimento é obrigatória' }]}
+        getValueFromEvent={(event) => formatBirthDate(event.target.value)}
+        rules={[
+          { required: true, message: 'Data de nascimento é obrigatória' },
+          {
+            validator: (_, value: string | undefined) => {
+              const parsed = dayjs(value, 'DD/MM/YYYY', true)
+              return parsed.isValid() && !parsed.isAfter(dayjs())
+                ? Promise.resolve()
+                : Promise.reject(new Error('Informe uma data de nascimento válida'))
+            }
+          }
+        ]}
       >
-        <DatePicker style={{ width: '100%' }} format="DD/MM/YYYY" disabledDate={(date) => date.isAfter(dayjs())} />
+        <TextInput placeholder="00/00/0000" inputMode="numeric" />
       </Form.Item>
       <Form.Item
         name="password"

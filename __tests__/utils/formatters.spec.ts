@@ -1,5 +1,5 @@
 /**
- * Testes unitários para os formatadores (onlyDigits, formatCPF, formatPhone)
+ * Testes unitários para os formatadores (onlyDigits, formatCPF, formatPhone, formatBirthDate)
  *
  * Cenários testados:
  * - onlyDigits: remove tudo que não é dígito
@@ -8,11 +8,13 @@
  * - formatPhone: aplica máscara de celular (11 dígitos)
  * - formatPhone: aplica máscara de telefone fixo (10 dígitos)
  * - formatPhone: não fecha o parêntese do DDD antes de ter os 2 dígitos
+ * - formatBirthDate: aplica a máscara `00/00/0000` progressivamente conforme os dígitos disponíveis
+ * - formatBirthDate: ignora dígitos além do 8º
  */
 
 import { describe, expect, it } from 'vitest'
 
-import { formatCPF, formatPhone, onlyDigits } from '@/utils/formatters'
+import { formatBirthDate, formatCPF, formatPhone, onlyDigits } from '@/utils/formatters'
 
 describe('onlyDigits', () => {
   it('remove tudo que não é dígito', () => {
@@ -44,5 +46,17 @@ describe('formatPhone', () => {
 
   it('não fecha o parêntese do DDD antes de ter os 2 dígitos', () => {
     expect(formatPhone('1')).toBe('(1')
+  })
+})
+
+describe('formatBirthDate', () => {
+  it('aplica a máscara progressivamente conforme os dígitos disponíveis', () => {
+    expect(formatBirthDate('01')).toBe('01')
+    expect(formatBirthDate('0101')).toBe('01/01')
+    expect(formatBirthDate('01011990')).toBe('01/01/1990')
+  })
+
+  it('ignora dígitos além do 8º', () => {
+    expect(formatBirthDate('010119909999')).toBe('01/01/1990')
   })
 })

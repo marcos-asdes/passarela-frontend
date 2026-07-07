@@ -1,5 +1,3 @@
-import type { Dayjs } from 'dayjs'
-
 import type { UserRole } from '@/store/reducers/auth/types'
 
 /** Valores do formulário de cadastro. */
@@ -8,7 +6,8 @@ export interface RegisterFormValues {
   email: string
   cpf: string
   phone: string
-  birthDate: Dayjs
+  /** Sempre no formato `DD/MM/YYYY`, aplicado por `formatBirthDate` enquanto o usuário digita. */
+  birthDate: string
   password: string
   confirmPassword: string
 }

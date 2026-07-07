@@ -33,3 +33,16 @@ export function formatPhone(raw: string): string {
   if (secondPart) result += `-${secondPart}`
   return result
 }
+
+/** Aplica a máscara `00/00/0000` progressivamente enquanto o usuário digita. */
+export function formatBirthDate(raw: string): string {
+  const digits = onlyDigits(raw).slice(0, 8)
+  const day = digits.slice(0, 2)
+  const month = digits.slice(2, 4)
+  const year = digits.slice(4, 8)
+
+  let result = day
+  if (month) result += `/${month}`
+  if (year) result += `/${year}`
+  return result
+}
