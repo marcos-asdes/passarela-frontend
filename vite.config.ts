@@ -22,6 +22,9 @@ export default defineConfig({
     setupFiles: ['./__tests__/setup.ts'],
     include: ['__tests__/**/*.spec.{ts,tsx}'],
     css: true,
+    // default de 5s aperta em runners de CI mais lentos pra specs com muitos userEvent.type sequenciais
+    // (formulário de cadastro inteiro) rodando sob --coverage; local fica em ~2-3.5s, CI passou de 5s
+    testTimeout: 15000,
     coverage: {
       provider: 'v8',
       // json-summary alimenta o script de CI que publica % no job summary e atualiza o badge do README

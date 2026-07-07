@@ -10,7 +10,7 @@ import { selectLoginAccessToken } from '@/store/reducers/auth/slice'
 import type { AuthState } from '@/store/reducers/auth/types'
 import interestReducer from '@/store/reducers/interest'
 import offersReducer from '@/store/reducers/offers'
-import { encryptor } from '@/utils/redux/persistEncryption'
+import { createEncryptor } from '@/utils/redux/persistEncryption'
 
 /**
  * Só `login` é persistido (o accessToken/user sobrevive a um refresh) — `register` é estado
@@ -20,7 +20,7 @@ const authPersistConfig: PersistConfig<AuthState> = {
   key: 'passarela_auth',
   storage,
   whitelist: ['login'],
-  transforms: import.meta.env.DEV ? [] : [encryptor]
+  transforms: import.meta.env.DEV ? [] : [createEncryptor()]
 }
 
 /** Root reducer da aplicação — um reducer por bounded state em `store/reducers/`. `offers`/`interest`

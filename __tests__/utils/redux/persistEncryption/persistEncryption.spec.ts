@@ -21,7 +21,8 @@ describe('encryptor', () => {
   })
 
   it('chama encryptTransform com a secretKey do ambiente', async () => {
-    const { encryptor } = await import('@/utils/redux/persistEncryption')
+    const { createEncryptor } = await import('@/utils/redux/persistEncryption')
+    const encryptor = createEncryptor()
 
     expect(encryptTransformMock).toHaveBeenCalledWith(
       expect.objectContaining({ secretKey: import.meta.env.VITE_REDUX_PERSIST_ENCRYPTION_KEY })
@@ -31,7 +32,8 @@ describe('encryptor', () => {
 
   it('onError loga o erro no console', async () => {
     const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined)
-    const { encryptor } = await import('@/utils/redux/persistEncryption')
+    const { createEncryptor } = await import('@/utils/redux/persistEncryption')
+    const encryptor = createEncryptor()
     const error = new Error('falha ao descriptografar')
 
     ;(encryptor as unknown as { onError: (error: Error) => void }).onError(error)
